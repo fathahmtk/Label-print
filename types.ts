@@ -17,6 +17,7 @@ export interface LabelData {
 }
 
 export interface PresetProduct {
+  id: string;
   name: string;
   data: Partial<Omit<LabelData, 'logo' | 'productionDate' | 'expiryDate'>>;
   shelfLifeDays: number;
