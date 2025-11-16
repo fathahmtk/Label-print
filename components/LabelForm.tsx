@@ -1,24 +1,44 @@
 import React from 'react';
-import type { LabelData } from '../types';
+import type { LabelData, PresetProduct } from '../types';
 import { MagicWandIcon, SpinnerIcon } from './icons';
 
 interface LabelFormProps {
   data: LabelData;
   isLoading: { ingredients: boolean; tagline: boolean };
+  presets: PresetProduct[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveLogo: () => void;
   onGenerateIngredients: () => void;
   onGenerateTagline: () => void;
+  onPresetChange: (name: string) => void;
 }
 
-const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, onChange, onLogoChange, onRemoveLogo, onGenerateIngredients, onGenerateTagline }) => {
+const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, presets, onChange, onLogoChange, onRemoveLogo, onGenerateIngredients, onGenerateTagline, onPresetChange }) => {
   const handlePrint = () => {
     window.print();
   };
 
   return (
     <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+      <div>
+        <label htmlFor="preset" className="block text-sm font-medium text-stone-600">Load Preset</label>
+        <select
+          id="preset"
+          name="preset"
+          onChange={(e) => onPresetChange(e.target.value)}
+          defaultValue=""
+          className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+        >
+          <option value="">-- Select a Preset --</option>
+          {presets.map((p) => (
+            <option key={p.name} value={p.name}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label htmlFor="brandName" className="block text-sm font-medium text-stone-600">Brand Name</label>
