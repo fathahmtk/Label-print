@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { LabelData, PresetProduct } from './types';
 import LabelForm from './components/LabelForm';
 import LabelPreview from './components/LabelPreview';
@@ -13,8 +13,10 @@ const presets: PresetProduct[] = [
       productName: 'CHOCOLATE CHIP COOKIES',
       ingredients: 'Enriched Wheat Flour (Wheat Flour, Niacin, Reduced Iron, Thiamine Mononitrate, Riboflavin, Folic Acid), Sugar, Brown Sugar, Butter (Cream, Salt), Eggs, Vanilla Extract, Baking Soda, Salt, Chocolate Chips (Sugar, Chocolate Liquor, Cocoa Butter, Soy Lecithin, Vanilla Extract).',
       allergens: 'CONTAINS: WHEAT, MILK, EGGS, SOY.',
-      quantity: '6 Pieces',
-      netWeight: '7 oz | 200g',
+      quantityValue: '6',
+      quantityUnit: 'Pieces',
+      unitWeightValue: '33.3',
+      unitWeightUnit: 'g',
       tagline: 'Freshly baked happiness.',
     }
   },
@@ -25,8 +27,10 @@ const presets: PresetProduct[] = [
       productName: 'ARTISAN SOURDOUGH BREAD',
       ingredients: 'Organic Wheat Flour, Water, Sourdough Starter (Flour, Water), Sea Salt.',
       allergens: 'CONTAINS: WHEAT.',
-      quantity: '1 Loaf',
-      netWeight: '24 oz | 680g',
+      quantityValue: '1',
+      quantityUnit: 'Loaf',
+      unitWeightValue: '680',
+      unitWeightUnit: 'g',
       tagline: 'Naturally leavened, handcrafted.',
     }
   },
@@ -37,8 +41,10 @@ const presets: PresetProduct[] = [
       productName: 'HOMEMADE STRAWBERRY JAM',
       ingredients: 'Strawberries, Sugar, Lemon Juice, Pectin.',
       allergens: '',
-      quantity: '1 Jar',
-      netWeight: '8 oz | 227g',
+      quantityValue: '1',
+      quantityUnit: 'Jar',
+      unitWeightValue: '227',
+      unitWeightUnit: 'g',
       tagline: 'Sunshine in a jar.',
     }
   },
@@ -53,8 +59,11 @@ const App: React.FC = () => {
     ingredients: 'Enriched Wheat Flour (Wheat Flour, Niacin, Reduced Iron, Thiamine Mononitrate, Riboflavin, Folic Acid), Sugar, Brown Sugar, Butter (Cream, Salt), Eggs, Vanilla Extract, Baking Soda, Salt, Chocolate Chips (Sugar, Chocolate Liquor, Cocoa Butter, Soy Lecithin, Vanilla Extract).',
     allergens: 'CONTAINS: WHEAT, MILK, EGGS, SOY.',
     mfgAndDist: "Your Company Name\nYour City, Country",
-    quantity: '6 Pieces',
-    netWeight: '7 oz | 200g',
+    quantityValue: '6',
+    quantityUnit: 'Pieces',
+    unitWeightValue: '33.3',
+    unitWeightUnit: 'g',
+    netWeight: '7.0 oz | 200g',
     disclaimer: 'MADE IN COTTAGE FOOD OPERATION THAT IS NOT SUBJECT TO ROUTINE GOVERNMENT FOOD SAFETY INSPECTIONS.',
     productionDate: new Date().toISOString().split('T')[0],
     expiryDate: '',
@@ -76,7 +85,7 @@ const App: React.FC = () => {
     return utcDate.toISOString().split('T')[0];
   };
   
-    // Set initial expiry date
+  // Set initial expiry date
   useState(() => {
     setLabelData(prev => ({
         ...prev,
@@ -84,8 +93,31 @@ const App: React.FC = () => {
     }))
   }, [])
 
+  useEffect(() => {
+    const quantity = parseFloat(labelData.quantityValue) || 0;
+    const unitWeight = parseFloat(labelData.unitWeightValue) || 0;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    if (quantity > 0 && unitWeight > 0) {
+      let totalGrams = 0;
+      if (labelData.unitWeightUnit === 'g') {
+        totalGrams = quantity * unitWeight;
+      } else if (labelData.unitWeightUnit === 'oz') {
+        totalGrams = quantity * unitWeight * 28.3495;
+      }
+
+      const totalOunces = totalGrams / 28.3495;
+      const netWeightString = `${totalOunces.toFixed(1)} oz | ${Math.round(totalGrams)}g`;
+
+      if (netWeightString !== labelData.netWeight) {
+        setLabelData(prev => ({ ...prev, netWeight: netWeightString }));
+      }
+    } else if (labelData.netWeight !== '') {
+       setLabelData(prev => ({...prev, netWeight: ''}));
+    }
+  }, [labelData.quantityValue, labelData.unitWeightValue, labelData.unitWeightUnit, labelData.netWeight]);
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setLabelData(prev => {
       const newData = { ...prev, [name]: value };
@@ -117,12 +149,14 @@ const App: React.FC = () => {
       const newExpiryDate = calculateExpiryDate(labelData.productionDate, selectedPreset.shelfLifeDays);
       setLabelData(prev => ({
         ...prev,
+        ...initialLabelData, // Reset to defaults first
         ...selectedPreset.data,
+        productionDate: prev.productionDate, // Keep current production date
         expiryDate: newExpiryDate,
       }));
       setSelectedPresetShelfLife(selectedPreset.shelfLifeDays);
     } else {
-        setLabelData(initialLabelData);
+      setLabelData(initialLabelData);
       setSelectedPresetShelfLife(null);
     }
   };

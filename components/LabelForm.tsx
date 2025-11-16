@@ -5,7 +5,7 @@ import type { LabelData, PresetProduct } from '../types';
 interface LabelFormProps {
   data: LabelData;
   presets: PresetProduct[];
-  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveLogo: () => void;
   onPresetChange: (name: string) => void;
@@ -95,12 +95,74 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, presets, onChange, onLogoCh
           <input type="text" id="allergens" name="allergens" value={data.allergens} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
         </div>
         <div>
-          <label htmlFor="netWeight" className="block text-sm font-medium text-stone-600">Net Weight</label>
-          <input type="text" id="netWeight" name="netWeight" value={data.netWeight} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
+          <label htmlFor="quantityValue" className="block text-sm font-medium text-stone-600">Quantity</label>
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="number"
+              id="quantityValue"
+              name="quantityValue"
+              value={data.quantityValue}
+              onChange={onChange}
+              className="block w-full flex-1 rounded-none rounded-l-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+              placeholder="Value"
+            />
+            <input
+              type="text"
+              name="quantityUnit"
+              value={data.quantityUnit}
+              onChange={onChange}
+              className="block w-full flex-1 rounded-none rounded-r-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+              placeholder="Unit"
+              list="quantity-units"
+            />
+            <datalist id="quantity-units">
+              <option value="Pieces" />
+              <option value="g" />
+              <option value="kg" />
+              <option value="oz" />
+              <option value="lb" />
+              <option value="Jar" />
+              <option value="Loaf" />
+              <option value="Portions" />
+            </datalist>
+          </div>
+        </div>
+         <div>
+          <label htmlFor="unitWeightValue" className="block text-sm font-medium text-stone-600">Weight per Unit</label>
+          <div className="mt-1 flex rounded-md shadow-sm">
+            <input
+              type="number"
+              id="unitWeightValue"
+              name="unitWeightValue"
+              value={data.unitWeightValue}
+              onChange={onChange}
+              className="block w-full flex-1 rounded-none rounded-l-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+              placeholder="e.g., 30"
+            />
+            <select
+              name="unitWeightUnit"
+              value={data.unitWeightUnit}
+              onChange={onChange}
+              className="block w-auto rounded-none rounded-r-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+            >
+              <option value="g">g</option>
+              <option value="oz">oz</option>
+            </select>
+          </div>
         </div>
         <div>
-          <label htmlFor="quantity" className="block text-sm font-medium text-stone-600">Quantity</label>
-          <input type="text" id="quantity" name="quantity" value={data.quantity} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
+          <div className="flex items-center space-x-1">
+            <label htmlFor="netWeight" className="block text-sm font-medium text-stone-600">Net Weight</label>
+            <div className="relative group">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-stone-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 bg-stone-800 text-white text-xs rounded py-1 px-2 z-10">
+                Calculated automatically from Quantity × Weight per Unit.
+              </div>
+            </div>
+          </div>
+          <input type="text" id="netWeight" name="netWeight" value={data.netWeight} onChange={onChange} readOnly className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm bg-stone-50 cursor-not-allowed" />
         </div>
         <div>
             <label htmlFor="mfgAndDist" className="block text-sm font-medium text-stone-600">Mfg & Dist. By</label>

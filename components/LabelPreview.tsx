@@ -7,22 +7,6 @@ interface LabelPreviewProps {
 }
 
 const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
-  const [quantityValue, quantityUnit] = React.useMemo(() => {
-    if (!data.quantity) return ['', ''];
-    
-    const quantityStr = String(data.quantity);
-    // Match the initial number part (including decimals)
-    const match = quantityStr.match(/^[\d.]+/);
-    
-    if (match) {
-      const value = match[0];
-      const unit = quantityStr.substring(value.length).trim();
-      return [value, unit];
-    }
-    
-    // Fallback if no number is found at the start
-    return ['', quantityStr];
-  }, [data.quantity]);
 
   return (
     <div id="label-preview" className="w-full max-w-md aspect-[4/3] bg-white text-black p-8 shadow-lg border border-stone-200 flex flex-col font-['Montserrat']">
@@ -67,8 +51,8 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
               <p>{data.netWeight}</p>
            </div>
            <div className="w-16 h-16 rounded-full bg-stone-100 flex flex-col items-center justify-center p-1">
-             <p className="text-3xl font-bold leading-tight">{quantityValue}</p>
-             {quantityUnit && <p className="text-xs tracking-wider uppercase text-center">{quantityUnit}</p>}
+             <p className="text-3xl font-bold leading-tight">{data.quantityValue}</p>
+             {data.quantityUnit && <p className="text-xs tracking-wider uppercase text-center">{data.quantityUnit}</p>}
            </div>
         </div>
       </div>

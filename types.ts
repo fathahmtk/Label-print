@@ -5,7 +5,10 @@ export interface LabelData {
   ingredients: string;
   allergens: string;
   mfgAndDist: string;
-  quantity: string;
+  quantityValue: string;
+  quantityUnit: string;
+  unitWeightValue: string;
+  unitWeightUnit: string;
   netWeight: string;
   disclaimer: string;
   productionDate: string;
