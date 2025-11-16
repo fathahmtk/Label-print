@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { LabelData } from '../types';
 
@@ -6,6 +7,23 @@ interface LabelPreviewProps {
 }
 
 const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
+  const [quantityValue, quantityUnit] = React.useMemo(() => {
+    if (!data.quantity) return ['', ''];
+    
+    const quantityStr = String(data.quantity);
+    // Match the initial number part (including decimals)
+    const match = quantityStr.match(/^[\d.]+/);
+    
+    if (match) {
+      const value = match[0];
+      const unit = quantityStr.substring(value.length).trim();
+      return [value, unit];
+    }
+    
+    // Fallback if no number is found at the start
+    return ['', quantityStr];
+  }, [data.quantity]);
+
   return (
     <div id="label-preview" className="w-full max-w-md aspect-[1/1] bg-white text-black p-8 shadow-lg border border-stone-200 flex flex-col font-['Montserrat']">
       <div className="text-center">
@@ -32,9 +50,9 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
           <p className="whitespace-pre-wrap">{data.mfgAndDist}</p>
         </div>
         <div className="flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-full bg-stone-100 flex flex-col items-center justify-center">
-            <p className="text-3xl font-bold">{data.quantity}</p>
-            <p className="text-xs tracking-wider">COOKIES</p>
+          <div className="w-16 h-16 rounded-full bg-stone-100 flex flex-col items-center justify-center p-1">
+            <p className="text-3xl font-bold leading-tight">{quantityValue}</p>
+            {quantityUnit && <p className="text-xs tracking-wider uppercase text-center">{quantityUnit}</p>}
           </div>
         </div>
         <div>

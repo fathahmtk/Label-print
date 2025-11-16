@@ -1,20 +1,16 @@
 import React from 'react';
 import type { LabelData, PresetProduct } from '../types';
-import { MagicWandIcon, SpinnerIcon } from './icons';
 
 interface LabelFormProps {
   data: LabelData;
-  isLoading: { ingredients: boolean; tagline: boolean };
   presets: PresetProduct[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveLogo: () => void;
-  onGenerateIngredients: () => void;
-  onGenerateTagline: () => void;
   onPresetChange: (name: string) => void;
 }
 
-const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, presets, onChange, onLogoChange, onRemoveLogo, onGenerateIngredients, onGenerateTagline, onPresetChange }) => {
+const LabelForm: React.FC<LabelFormProps> = ({ data, presets, onChange, onLogoChange, onRemoveLogo, onPresetChange }) => {
   const handlePrint = () => {
     window.print();
   };
@@ -27,7 +23,7 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, presets, onChang
           id="preset"
           name="preset"
           onChange={(e) => onPresetChange(e.target.value)}
-          defaultValue=""
+          defaultValue="Chocolate Chip Cookies"
           className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
         >
           <option value="">-- Select a Preset --</option>
@@ -84,24 +80,12 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, presets, onChang
 
       <div>
           <label htmlFor="tagline" className="block text-sm font-medium text-stone-600">Tagline</label>
-          <div className="mt-1 flex rounded-md shadow-sm">
-            <input type="text" id="tagline" name="tagline" value={data.tagline} onChange={onChange} className="block w-full flex-1 rounded-none rounded-l-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
-            <button onClick={onGenerateTagline} disabled={isLoading.tagline} className="relative inline-flex items-center space-x-2 rounded-r-md border border-stone-300 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500 disabled:bg-stone-200 disabled:cursor-not-allowed">
-              {isLoading.tagline ? <SpinnerIcon /> : <MagicWandIcon />}
-              <span>Suggest</span>
-            </button>
-          </div>
+          <input type="text" id="tagline" name="tagline" value={data.tagline} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
       </div>
 
       <div>
         <label htmlFor="ingredients" className="block text-sm font-medium text-stone-600">Ingredients</label>
-        <div className="mt-1 flex rounded-md shadow-sm">
-          <textarea id="ingredients" name="ingredients" rows={4} value={data.ingredients} onChange={onChange} className="block w-full flex-1 rounded-none rounded-l-md border-stone-300 focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
-          <button onClick={onGenerateIngredients} disabled={isLoading.ingredients} className="relative inline-flex items-center space-x-2 rounded-r-md border border-stone-300 bg-stone-50 px-4 py-2 text-sm font-medium text-stone-700 hover:bg-stone-100 focus:border-stone-500 focus:outline-none focus:ring-1 focus:ring-stone-500 disabled:bg-stone-200 disabled:cursor-not-allowed">
-              {isLoading.ingredients ? <SpinnerIcon /> : <MagicWandIcon />}
-              <span>Suggest</span>
-          </button>
-        </div>
+        <textarea id="ingredients" name="ingredients" rows={4} value={data.ingredients} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -126,7 +110,17 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, isLoading, presets, onChang
           <input type="date" id="productionDate" name="productionDate" value={data.productionDate} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
         </div>
         <div>
-          <label htmlFor="expiryDate" className="block text-sm font-medium text-stone-600">Expiry Date</label>
+          <div className="flex items-center space-x-1">
+            <label htmlFor="expiryDate" className="block text-sm font-medium text-stone-600">Expiry Date</label>
+            <div className="relative group">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-stone-400 cursor-help" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 bg-stone-800 text-white text-xs rounded py-1 px-2 z-10">
+                Automatically calculated from Production Date when a preset is loaded. Can be manually overridden.
+              </div>
+            </div>
+          </div>
           <input type="date" id="expiryDate" name="expiryDate" value={data.expiryDate} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
         </div>
       </div>

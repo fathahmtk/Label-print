@@ -1,20 +1,19 @@
+
 import React, { useState } from 'react';
 import type { LabelData, PresetProduct } from './types';
 import LabelForm from './components/LabelForm';
 import LabelPreview from './components/LabelPreview';
-import { generateIngredients, generateTagline } from './services/geminiService';
-
-const defaultLogo = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAEgASIDASIAAhEBAxEB/8QAGwABAQACAwEAAAAAAAAAAAAAAAEGBwIDBAX/xABBEAABAwMCAwYDBgQEBgMAAAABAAIDBAURIQYSMQcTQVFhInGBkRRCobHBFSMyUnLwFjQkNFNigpLhJENTwtHx/8QAGAEBAQEBAQAAAAAAAAAAAAAAAAECAwT/xAAfEQEBAQEAAwEAAwEBAAAAAAAAAQIRAxMhMRIEURMiYQT/2gAMAwEAAhEDEQA/AO4oiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi-A-sprint-long-description="true">iIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi-s-long-description="true">AiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAiIgIiICIiAi-long-description="true">ZAgg';
 
 const presets: PresetProduct[] = [
   {
+
     name: 'Chocolate Chip Cookies',
     shelfLifeDays: 7,
     data: {
       productName: 'CHOCOLATE CHIP COOKIES',
       ingredients: 'Enriched Wheat Flour (Wheat Flour, Niacin, Reduced Iron, Thiamine Mononitrate, Riboflavin, Folic Acid), Sugar, Brown Sugar, Butter (Cream, Salt), Eggs, Vanilla Extract, Baking Soda, Salt, Chocolate Chips (Sugar, Chocolate Liquor, Cocoa Butter, Soy Lecithin, Vanilla Extract).',
       allergens: 'CONTAINS: WHEAT, MILK, EGGS, SOY.',
-      quantity: '6',
+      quantity: '6 Pieces',
       netWeight: '7 oz | 200g',
       tagline: 'Freshly baked happiness.',
     }
@@ -47,14 +46,14 @@ const presets: PresetProduct[] = [
 
 const App: React.FC = () => {
   const initialLabelData: LabelData = {
-    brandName: "Hot Bake",
+    brandName: "iCAN",
     productName: 'CHOCOLATE CHIP COOKIES',
-    tagline: 'The art for celebrations',
-    logo: defaultLogo,
+    tagline: 'Quality You Can Taste',
+    logo: '',
     ingredients: 'Enriched Wheat Flour (Wheat Flour, Niacin, Reduced Iron, Thiamine Mononitrate, Riboflavin, Folic Acid), Sugar, Brown Sugar, Butter (Cream, Salt), Eggs, Vanilla Extract, Baking Soda, Salt, Chocolate Chips (Sugar, Chocolate Liquor, Cocoa Butter, Soy Lecithin, Vanilla Extract).',
     allergens: 'CONTAINS: WHEAT, MILK, EGGS, SOY.',
-    mfgAndDist: "THE BAKER'S COTTAGE\n123 Street, Area, City\nState, USA-400780",
-    quantity: '6',
+    mfgAndDist: "Your Company Name\nYour City, Country",
+    quantity: '6 Pieces',
     netWeight: '7 oz | 200g',
     disclaimer: 'MADE IN COTTAGE FOOD OPERATION THAT IS NOT SUBJECT TO ROUTINE GOVERNMENT FOOD SAFETY INSPECTIONS.',
     productionDate: new Date().toISOString().split('T')[0],
@@ -62,18 +61,27 @@ const App: React.FC = () => {
   };
 
   const [labelData, setLabelData] = useState<LabelData>(initialLabelData);
-  const [isLoading, setIsLoading] = useState({ ingredients: false, tagline: false });
-  const [error, setError] = useState('');
-  const [selectedPresetShelfLife, setSelectedPresetShelfLife] = useState<number | null>(null);
+  const [selectedPresetShelfLife, setSelectedPresetShelfLife] = useState<number | null>(7);
 
   const calculateExpiryDate = (startDate: string, days: number): string => {
     if (!startDate || isNaN(days)) return '';
-    const date = new Date(startDate);
-    // Adjust for timezone offset to prevent date from shifting
-    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-    date.setDate(date.getDate() + days);
-    return date.toISOString().split('T')[0];
+    
+    const parts = startDate.split('-').map(part => parseInt(part, 10));
+    const utcDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    
+    utcDate.setUTCDate(utcDate.getUTCDate() + days);
+
+    return utcDate.toISOString().split('T')[0];
   };
+  
+    // Set initial expiry date
+  useState(() => {
+    setLabelData(prev => ({
+        ...prev,
+        expiryDate: calculateExpiryDate(prev.productionDate, 7)
+    }))
+  }, [])
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -101,40 +109,6 @@ const App: React.FC = () => {
     setLabelData(prev => ({ ...prev, logo: '' }));
   };
 
-  const handleGenerateIngredients = async () => {
-    if (!labelData.productName) {
-      setError('Please enter a product name first.');
-      return;
-    }
-    setIsLoading(prev => ({ ...prev, ingredients: true }));
-    setError('');
-    try {
-      const result = await generateIngredients(labelData.productName);
-      setLabelData(prev => ({ ...prev, ingredients: result }));
-    } catch (err) {
-      setError('Failed to generate ingredients. Please try again.');
-    } finally {
-      setIsLoading(prev => ({ ...prev, ingredients: false }));
-    }
-  };
-
-  const handleGenerateTagline = async () => {
-    if (!labelData.productName) {
-      setError('Please enter a product name first.');
-      return;
-    }
-    setIsLoading(prev => ({ ...prev, tagline: true }));
-    setError('');
-    try {
-      const result = await generateTagline(labelData.productName);
-      setLabelData(prev => ({ ...prev, tagline: result }));
-    } catch (err) {
-      setError('Failed to generate tagline. Please try again.');
-    } finally {
-      setIsLoading(prev => ({ ...prev, tagline: false }));
-    }
-  };
-
   const handlePresetChange = (presetName: string) => {
     const selectedPreset = presets.find(p => p.name === presetName);
     if (selectedPreset) {
@@ -146,6 +120,7 @@ const App: React.FC = () => {
       }));
       setSelectedPresetShelfLife(selectedPreset.shelfLifeDays);
     } else {
+        setLabelData(initialLabelData);
       setSelectedPresetShelfLife(null);
     }
   };
@@ -154,15 +129,9 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-stone-100 text-stone-800 p-4 sm:p-6 lg:p-8">
       <main className="max-w-7xl mx-auto">
         <header className="text-center mb-8">
-          <h1 className="font-dancing-script text-5xl text-stone-700">Artisan Food Label Maker</h1>
-          <p className="text-stone-500 mt-2">Create and print beautiful labels for your homemade goods.</p>
+          <h1 className="font-dancing-script text-5xl text-stone-700">iCAN</h1>
+          <p className="text-stone-500 mt-2">Create and print professional food labels.</p>
         </header>
-
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span className="block sm:inline">{error}</span>
-          </div>
-        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-white p-6 rounded-lg shadow-md">
@@ -171,9 +140,6 @@ const App: React.FC = () => {
               onChange={handleInputChange}
               onLogoChange={handleLogoChange}
               onRemoveLogo={handleRemoveLogo}
-              onGenerateIngredients={handleGenerateIngredients}
-              onGenerateTagline={handleGenerateTagline}
-              isLoading={isLoading}
               presets={presets}
               onPresetChange={handlePresetChange}
             />
