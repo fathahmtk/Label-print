@@ -2,6 +2,7 @@ export interface LabelData {
   brandName: string;
   productName: string;
   tagline: string;
+  size: string;
   ingredients: string;
   allergens: string;
   mfgAndDist: string;

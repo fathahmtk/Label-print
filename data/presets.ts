@@ -8,6 +8,7 @@ export const initialPresets: PresetProduct[] = [
     shelfLifeDays: 7,
     data: {
       productName: 'CHOCOLATE CHIP COOKIES',
+      size: '6-Pack',
       ingredients: 'Enriched Wheat Flour (Wheat Flour, Niacin, Reduced Iron, Thiamine Mononitrate, Riboflavin, Folic Acid), Sugar, Brown Sugar, Butter (Cream, Salt), Eggs, Vanilla Extract, Baking Soda, Salt, Chocolate Chips (Sugar, Chocolate Liquor, Cocoa Butter, Soy Lecithin, Vanilla Extract).',
       allergens: 'CONTAINS: WHEAT, MILK, EGGS, SOY.',
       quantityValue: '6',
@@ -23,6 +24,7 @@ export const initialPresets: PresetProduct[] = [
     shelfLifeDays: 5,
     data: {
       productName: 'ARTISAN SOURDOUGH BREAD',
+      size: 'Large Loaf',
       ingredients: 'Organic Wheat Flour, Water, Sourdough Starter (Flour, Water), Sea Salt.',
       allergens: 'CONTAINS: WHEAT.',
       quantityValue: '1',
@@ -38,6 +40,7 @@ export const initialPresets: PresetProduct[] = [
     shelfLifeDays: 365,
     data: {
       productName: 'HOMEMADE STRAWBERRY JAM',
+      size: '8oz Jar',
       ingredients: 'Strawberries, Sugar, Lemon Juice, Pectin.',
       allergens: '',
       quantityValue: '1',
@@ -50,9 +53,10 @@ export const initialPresets: PresetProduct[] = [
 ];
 
 export const initialLabelData: LabelData = {
-    brandName: "iCAN",
+    brandName: "Hot Bake",
     productName: '',
     tagline: 'Quality You Can Taste',
+    size: 'Regular',
     logo: '',
     ingredients: '',
     allergens: '',

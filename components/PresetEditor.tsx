@@ -13,6 +13,7 @@ const emptyData = {
     shelfLifeDays: 7,
     data: {
       productName: '',
+      size: '',
       ingredients: '',
       allergens: '',
       quantityValue: '1',
@@ -90,6 +91,10 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose }) 
                         <div>
                             <label htmlFor="productName" className="block text-sm font-medium text-stone-600">Product Name (on label)</label>
                             <input type="text" id="productName" name="productName" value={formData.data.productName} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                        </div>
+                         <div>
+                            <label htmlFor="size" className="block text-sm font-medium text-stone-600">Size</label>
+                            <input type="text" id="size" name="size" value={formData.data.size} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" placeholder="e.g., Large, 6-Pack, 8oz Jar" />
                         </div>
                         <div>
                             <label htmlFor="tagline" className="block text-sm font-medium text-stone-600">Tagline</label>

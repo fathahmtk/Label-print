@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { LabelData, PresetProduct } from '../types';
 import LabelForm from '../components/LabelForm';
@@ -71,7 +70,7 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
   };
 
   const handleRemoveLogo = () => {
-    setLabelData(prev => ({ ...prev, logo: '' }));
+    setLabelData(prev => ({ ...prev, logo: undefined }));
   };
 
   const handlePresetChange = (presetName: string) => {
@@ -93,8 +92,8 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-white p-6 rounded-lg shadow-md no-print">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
+      <div className="lg:col-span-1 bg-white p-6 rounded-lg shadow-lg no-print">
         <LabelForm
           data={labelData}
           onChange={handleInputChange}
@@ -106,9 +105,9 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
           onPrint={handlePrint}
         />
       </div>
-      <div className="flex flex-col">
+      <div className="lg:col-span-1 lg:sticky lg:top-28">
         <h2 className="text-2xl font-bold text-stone-700 mb-4 text-center lg:text-left no-print">Live Preview</h2>
-        <div className="flex-grow flex items-center justify-center bg-white p-4 rounded-lg shadow-md print-container">
+        <div className="flex-grow flex items-center justify-center lg:justify-start bg-white p-4 rounded-lg shadow-lg print-container">
           <LabelPreview data={labelData} />
         </div>
       </div>

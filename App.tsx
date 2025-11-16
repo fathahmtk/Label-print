@@ -9,7 +9,7 @@ const App: React.FC = () => {
   const [page, setPage] = useState<'print' | 'config'>('print');
   const [presets, setPresets] = useState<PresetProduct[]>(() => {
     try {
-      const storedPresets = localStorage.getItem('ican-presets');
+      const storedPresets = localStorage.getItem('hotbake-presets');
       if (storedPresets) {
         return JSON.parse(storedPresets);
       }
@@ -21,7 +21,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     try {
-      localStorage.setItem('ican-presets', JSON.stringify(presets));
+      localStorage.setItem('hotbake-presets', JSON.stringify(presets));
     } catch (error) {
       console.error("Failed to save presets to localStorage", error);
     }
@@ -46,32 +46,36 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-100 text-stone-800 p-4 sm:p-6 lg:p-8">
-      <main className="max-w-7xl mx-auto">
-        <header className="text-center mb-8">
-          <h1 className="font-dancing-script text-5xl text-stone-700">iCAN</h1>
-          <p className="text-stone-500 mt-2">Create and print professional food labels.</p>
-        </header>
+    <div className="min-h-screen bg-stone-50 text-stone-800">
+      <header className="bg-white shadow-sm sticky top-0 z-40 no-print">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-20">
+                <div className="flex-shrink-0">
+                    <h1 className="font-dancing-script text-4xl text-stone-800">Hot Bake</h1>
+                </div>
+                <nav className="flex items-center bg-stone-100 rounded-lg p-1 space-x-1">
+                  <button
+                    onClick={() => setPage('print')}
+                    className={`px-5 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+                      page === 'print' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-600 hover:bg-white/60'
+                    }`}
+                  >
+                    Label Printer
+                  </button>
+                  <button
+                    onClick={() => setPage('config')}
+                    className={`px-5 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
+                      page === 'config' ? 'bg-white text-stone-800 shadow-sm' : 'text-stone-600 hover:bg-white/60'
+                    }`}
+                  >
+                    Manage Products
+                  </button>
+                </nav>
+            </div>
+        </div>
+      </header>
 
-        <nav className="flex justify-center items-center bg-white rounded-lg shadow-md p-2 mb-8 space-x-2 no-print">
-          <button
-            onClick={() => setPage('print')}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
-              page === 'print' ? 'bg-stone-700 text-white shadow-sm' : 'text-stone-600 hover:bg-stone-100'
-            }`}
-          >
-            Label Printer
-          </button>
-          <button
-            onClick={() => setPage('config')}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors duration-150 ${
-              page === 'config' ? 'bg-stone-700 text-white shadow-sm' : 'text-stone-600 hover:bg-stone-100'
-            }`}
-          >
-            Manage Products
-          </button>
-        </nav>
-
+      <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {page === 'print' && <PrintPage presets={presets} />}
         {page === 'config' && (
             <ConfigPage 
