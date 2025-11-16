@@ -66,6 +66,8 @@ const App: React.FC = () => {
   const calculateExpiryDate = (startDate: string, days: number): string => {
     if (!startDate || isNaN(days)) return '';
     
+    // Using UTC to avoid timezone-related errors. The JavaScript Date object's
+    // built-in logic correctly handles rollovers for months, years, and leap years.
     const parts = startDate.split('-').map(part => parseInt(part, 10));
     const utcDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
     

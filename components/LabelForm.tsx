@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { LabelData, PresetProduct } from '../types';
 
@@ -117,7 +118,7 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, presets, onChange, onLogoCh
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 bg-stone-800 text-white text-xs rounded py-1 px-2 z-10">
-                Automatically calculated from Production Date when a preset is loaded. Can be manually overridden.
+                Calculated by adding the preset's shelf life to the Production Date. This automatically accounts for month length and leap years. You can override this value manually.
               </div>
             </div>
           </div>
