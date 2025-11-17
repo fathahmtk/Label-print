@@ -11,9 +11,16 @@ interface LabelFormProps {
   onPresetChange: (name: string) => void;
   onPrint: () => void;
   selectedPresetName: string;
+  labelCount: number;
+  onLabelCountChange: (count: number) => void;
+  printDensity: string;
+  onPrintDensityChange: (density: string) => void;
 }
 
-const LabelForm: React.FC<LabelFormProps> = ({ data, presets, onChange, onLogoChange, onRemoveLogo, onPresetChange, onPrint, selectedPresetName }) => {
+const LabelForm: React.FC<LabelFormProps> = ({ 
+  data, presets, onChange, onLogoChange, onRemoveLogo, onPresetChange, 
+  onPrint, selectedPresetName, labelCount, onLabelCountChange, printDensity, onPrintDensityChange 
+}) => {
 
   return (
     <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
@@ -114,6 +121,39 @@ const LabelForm: React.FC<LabelFormProps> = ({ data, presets, onChange, onLogoCh
               <label htmlFor="disclaimer" className="block text-sm font-medium text-stone-600">Disclaimer</label>
               <textarea id="disclaimer" name="disclaimer" rows={2} value={data.disclaimer} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
             </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="text-lg font-semibold text-stone-800 mb-4 pb-2 w-full">3. Print Settings</legend>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label htmlFor="labelCount" className="block text-sm font-medium text-stone-600">Labels per Page</label>
+            <select
+              id="labelCount"
+              name="labelCount"
+              value={labelCount}
+              onChange={(e) => onLabelCountChange(parseInt(e.target.value, 10))}
+              className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+            >
+              <option value="4">4 (Large)</option>
+              <option value="6">6 (Medium)</option>
+              <option value="12">12 (Small)</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="printDensity" className="block text-sm font-medium text-stone-600">Print Density</label>
+             <select
+              id="printDensity"
+              name="printDensity"
+              value={printDensity}
+              onChange={(e) => onPrintDensityChange(e.target.value)}
+              className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
+            >
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+            </select>
+          </div>
         </div>
       </fieldset>
       

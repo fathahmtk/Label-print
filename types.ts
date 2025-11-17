@@ -1,3 +1,4 @@
+
 export interface LabelData {
   brandName: string;
   productName: string;

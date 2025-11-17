@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -19,7 +20,7 @@
       @media print {
         @page {
           size: A4;
-          margin: 0.75cm;
+          margin: 1cm;
         }
 
         body {
@@ -44,17 +45,43 @@
           top: 0;
           width: 100%;
           height: 100%;
-          font-size: 8pt; /* Scale down fonts for smaller labels */
         }
         
         .print-grid-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: repeat(3, 1fr);
             gap: 0.5cm;
             width: 100%;
             height: 100%;
         }
+
+        #print-area.labels-4 .print-grid-container {
+          grid-template-columns: repeat(2, 1fr);
+          grid-template-rows: repeat(2, 1fr);
+          font-size: 10pt;
+        }
+
+        #print-area.labels-6 .print-grid-container {
+          grid-template-columns: repeat(2, 1fr);
+          grid-template-rows: repeat(3, 1fr);
+          font-size: 9pt;
+        }
+
+        #print-area.labels-12 .print-grid-container {
+          grid-template-columns: repeat(3, 1fr);
+          grid-template-rows: repeat(4, 1fr);
+          font-size: 7pt;
+        }
+
+        #print-area.density-high {
+          font-weight: 500;
+        }
+        #print-area.density-high .label-copy {
+          border: 1px solid #999999;
+        }
+        #print-area.density-high h1, #print-area.density-high h2 {
+           font-weight: 900;
+        }
+
 
         .label-copy {
             page-break-inside: avoid; /* Prevent labels from splitting across pages */

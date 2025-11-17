@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { LabelData, PresetProduct } from '../types';
 import LabelForm from '../components/LabelForm';
@@ -23,6 +24,8 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
 
   const [selectedPresetShelfLife, setSelectedPresetShelfLife] = useState<number | null>(() => presets[0]?.shelfLifeDays ?? null);
   const [selectedPresetName, setSelectedPresetName] = useState<string>(() => presets[0]?.name ?? '');
+  const [labelCount, setLabelCount] = useState<number>(4);
+  const [printDensity, setPrintDensity] = useState<string>('normal');
 
   useEffect(() => {
     const quantity = parseFloat(labelData.quantityValue) || 0;
@@ -103,12 +106,20 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
           onPresetChange={handlePresetChange}
           selectedPresetName={selectedPresetName}
           onPrint={handlePrint}
+          labelCount={labelCount}
+          onLabelCountChange={setLabelCount}
+          printDensity={printDensity}
+          onPrintDensityChange={setPrintDensity}
         />
       </div>
       <div className="lg:col-span-1 lg:sticky lg:top-28">
         <h2 className="text-2xl font-bold text-stone-700 mb-4 text-center lg:text-left no-print">Live Preview</h2>
         <div className="flex-grow flex items-center justify-center lg:justify-start bg-white p-4 rounded-lg shadow-lg print-container">
-          <LabelPreview data={labelData} />
+          <LabelPreview 
+            data={labelData}
+            labelCount={labelCount}
+            printDensity={printDensity}
+          />
         </div>
       </div>
     </div>

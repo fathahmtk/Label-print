@@ -1,8 +1,11 @@
+
 import React from 'react';
 import type { LabelData } from '../types';
 
 interface LabelPreviewProps {
   data: LabelData;
+  labelCount: number;
+  printDensity: string;
 }
 
 // Helper component for the label's visual content to avoid duplication.
@@ -118,7 +121,15 @@ const LabelContent: React.FC<{ data: LabelData }> = ({ data }) => {
   );
 };
 
-const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
+const LabelPreview: React.FC<LabelPreviewProps> = ({ data, labelCount, printDensity }) => {
+  const getPrintLayoutClasses = (count: number): string => {
+    if (count === 12) return 'labels-12';
+    if (count === 6) return 'labels-6';
+    return 'labels-4';
+  };
+
+  const printClasses = `${getPrintLayoutClasses(labelCount)} ${printDensity === 'high' ? 'density-high' : ''}`;
+
   return (
     <>
       {/* Live Preview for Screen */}
@@ -127,9 +138,9 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
       </div>
 
       {/* Print Area for A4 Sheet - hidden on screen, visible on print */}
-      <div id="print-area">
+      <div id="print-area" className={printClasses}>
         <div className="print-grid-container">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(labelCount)].map((_, i) => (
             <div key={i} className="label-copy bg-white text-black flex flex-col font-['Montserrat'] overflow-hidden">
               <LabelContent data={data} />
             </div>
