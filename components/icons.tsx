@@ -12,18 +12,6 @@ export const LogoIcon: React.FC<IconProps> = ({ className }) => (
     </svg>
 );
 
-export const TranslateIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
-  </svg>
-);
-
-export const SparklesIcon: React.FC<IconProps> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.256 9a1 1 0 010 1.8l-3.11 1.054-1.178 4.455a1 1 0 01-1.933 0L9.854 11.854 6.744 10.8a1 1 0 010-1.8l3.11-1.054L11.033 2.744A1 1 0 0112 2z" clipRule="evenodd" />
-  </svg>
-);
-
 export const BarcodeIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} viewBox="0 0 100 50" preserveAspectRatio="none" fill="currentColor">
         <path d="M0 0 H5 V50 H0 z" />
