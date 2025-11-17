@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { LabelData, PresetProduct, LabelTemplate } from '../types';
+import type { LabelData, PresetProduct, LabelTemplate, BrandingSettings } from '../types';
 import LabelForm from '../components/LabelForm';
 import LabelPreview from '../components/LabelPreview';
 import { initialLabelData, calculateExpiryDate } from '../data/presets';
@@ -7,19 +7,24 @@ import { initialLabelData, calculateExpiryDate } from '../data/presets';
 interface PrintPageProps {
   presets: PresetProduct[];
   templates: LabelTemplate[];
+  brandingSettings: BrandingSettings;
 }
 
-const PrintPage: React.FC<PrintPageProps> = ({ presets, templates }) => {
+const PrintPage: React.FC<PrintPageProps> = ({ presets, templates, brandingSettings }) => {
   const [labelData, setLabelData] = useState<LabelData>(() => {
     const firstPreset = presets[0];
+    const initialData = {
+        ...initialLabelData,
+        logo: brandingSettings.defaultLogo,
+    };
     if (firstPreset) {
       return {
-        ...initialLabelData,
+        ...initialData,
         ...firstPreset.data,
-        expiryDate: calculateExpiryDate(initialLabelData.productionDate, firstPreset.shelfLifeDays),
+        expiryDate: calculateExpiryDate(initialData.productionDate, firstPreset.shelfLifeDays),
       };
     }
-    return initialLabelData;
+    return initialData;
   });
 
   const [selectedPresetShelfLife, setSelectedPresetShelfLife] = useState<number | null>(() => presets[0]?.shelfLifeDays ?? null);
@@ -85,6 +90,7 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets, templates }) => {
       setLabelData(prev => ({
         ...prev,
         ...selectedPreset.data,
+        logo: prev.logo, // Keep the currently loaded logo
         expiryDate: newExpiryDate,
       }));
       setSelectedPresetShelfLife(selectedPreset.shelfLifeDays);

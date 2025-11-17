@@ -1,17 +1,50 @@
-import React from 'react';
-import type { PresetProduct, LabelTemplate } from '../types';
-import { ExportIcon, ImportIcon } from '../components/icons';
+import React, { useState, useEffect } from 'react';
+import type { PresetProduct, LabelTemplate, BrandingSettings } from '../types';
+import { ExportIcon, ImportIcon, DuplicateIcon } from '../components/icons';
 
 interface DashboardPageProps {
     presets: PresetProduct[];
     templates: LabelTemplate[];
+    brandingSettings: BrandingSettings;
+    onBrandingChange: (settings: BrandingSettings) => void;
     setPage: (page: 'print' | 'config' | 'templates') => void;
     onEditTemplate: (id: string) => void;
+    onCloneTemplate: (id: string) => void;
     onExport: () => void;
     onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    addToast: (message: string, type?: 'success' | 'error') => void;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPage, onEditTemplate, onExport, onImport }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ 
+    presets, templates, brandingSettings, onBrandingChange, setPage, 
+    onEditTemplate, onCloneTemplate, onExport, onImport, addToast
+}) => {
+
+    const [localBranding, setLocalBranding] = useState(brandingSettings);
+
+    useEffect(() => {
+        setLocalBranding(brandingSettings);
+    }, [brandingSettings]);
+
+    const handleBrandingChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setLocalBranding(prev => ({...prev, [name]: value}));
+    };
+    
+    const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLocalBranding(prev => ({ ...prev, defaultLogo: reader.result as string }));
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    };
+    
+    const handleBrandingSave = () => {
+        onBrandingChange(localBranding);
+        addToast('Branding settings saved!');
+    };
 
     const recentPresets = presets.slice(0, 3);
     const recentTemplates = templates.slice(0, 3);
@@ -75,10 +108,47 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPa
                                     <p className="font-semibold text-stone-800">{template.name}</p>
                                     <p className="text-xs text-stone-500">{template.widthMm}mm x {template.heightMm}mm</p>
                                 </div>
-                                <button onClick={() => onEditTemplate(template.id)} className="text-sm font-medium text-stone-600 hover:text-stone-900">Edit</button>
+                                <div className="flex items-center gap-2">
+                                  {template.isDefault && <button onClick={() => onCloneTemplate(template.id)} className="p-1.5 text-stone-500 hover:text-stone-800" title="Clone"><DuplicateIcon className="h-4 w-4" /></button>}
+                                  <button onClick={() => onEditTemplate(template.id)} className="text-sm font-medium text-stone-600 hover:text-stone-900">Edit</button>
+                                </div>
                             </div>
                         )) : <p className="text-stone-500 text-center py-4">No templates yet.</p>}
                      </div>
+                </div>
+            </div>
+
+            <div>
+                <h2 className="text-2xl font-bold text-stone-700 mb-4">Branding & Defaults</h2>
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                        <div>
+                           <label className="block text-sm font-medium text-stone-600">Default Logo</label>
+                            <div className="mt-1 flex items-center space-x-4">
+                               <input type="file" id="defaultLogo" onChange={handleLogoChange} accept="image/*" className="hidden" />
+                               {localBranding.defaultLogo ? (
+                                   <img src={localBranding.defaultLogo} alt="Default logo" className="h-12 w-12 object-contain rounded-md bg-stone-50 p-1 border" />
+                               ) : (
+                                   <div className="h-12 w-12 bg-stone-100 rounded-md flex items-center justify-center text-stone-400 border">
+                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                   </div>
+                               )}
+                               <label htmlFor="defaultLogo" className="cursor-pointer text-sm font-medium text-stone-600 hover:text-stone-800 underline">
+                                  {localBranding.defaultLogo ? 'Change' : 'Upload'}
+                               </label>
+                            </div>
+                        </div>
+                        <div>
+                             <label htmlFor="defaultMfgAndDist" className="block text-sm font-medium text-stone-600">Default Manufacturer Info (EN)</label>
+                             <textarea id="defaultMfgAndDist" name="defaultMfgAndDist" value={localBranding.defaultMfgAndDist} onChange={handleBrandingChange} rows={2} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                             
+                             <label htmlFor="defaultMfgAndDist_ar" className="mt-4 block text-sm font-medium text-stone-600">Default Manufacturer Info (AR)</label>
+                             <textarea id="defaultMfgAndDist_ar" name="defaultMfgAndDist_ar" value={localBranding.defaultMfgAndDist_ar} onChange={handleBrandingChange} dir="rtl" rows={2} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm font-arabic" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                        <button onClick={handleBrandingSave} className="px-4 py-2 bg-stone-700 text-white rounded-md hover:bg-stone-800 text-sm font-medium">Save Branding</button>
+                    </div>
                 </div>
             </div>
             
@@ -88,7 +158,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPa
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                         <div>
                             <h3 className="font-semibold text-stone-800">Export Data</h3>
-                            <p className="text-sm text-stone-500 mt-1">Download a backup of all your products and templates to a single JSON file.</p>
+                            <p className="text-sm text-stone-500 mt-1">Download a backup of your products and custom templates to a JSON file.</p>
                         </div>
                          <div className="flex justify-start md:justify-end">
                              <button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 rounded-md text-sm font-medium text-stone-700 hover:bg-stone-50">

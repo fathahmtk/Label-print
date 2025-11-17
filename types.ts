@@ -72,6 +72,7 @@ export interface LabelTemplate {
   widthMm: number;
   heightMm: number;
   elements: LayoutElement[];
+  isDefault?: boolean;
   lastModified?: string;
 }
 
@@ -79,4 +80,10 @@ export interface ToastMessage {
   id: string;
   message: string;
   type: 'success' | 'error';
+}
+
+export interface BrandingSettings {
+  defaultLogo?: string;
+  defaultMfgAndDist: string;
+  defaultMfgAndDist_ar: string;
 }

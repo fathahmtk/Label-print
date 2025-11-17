@@ -1,25 +1,48 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import type { LabelTemplate, LayoutElement, DataBindingKey } from '../types';
-import { initialLabelData } from '../data/presets';
-import { BarcodeIcon, QrCodeIcon, BringForwardIcon, SendBackwardIcon, BinIcon, RotateIcon, DuplicateIcon, ZoomInIcon, ZoomOutIcon } from '../components/icons';
+import type { LabelTemplate, LayoutElement, DataBindingKey, PresetProduct } from '../types';
+import { initialLabelData, calculateExpiryDate } from '../data/presets';
+import { BarcodeIcon, QrCodeIcon, BringForwardIcon, SendBackwardIcon, BinIcon, RotateIcon, DuplicateIcon, ZoomInIcon, ZoomOutIcon, UndoIcon, RedoIcon, GridIcon } from '../components/icons';
+import LabelPreview from '../components/LabelPreview';
 
-// Type alias for cleaner code
+// --- Custom History Hook for Undo/Redo ---
+const useHistory = <T,>(initialState: T): [T, (newState: T, fromHistory?: boolean) => void, () => void, () => void, boolean, boolean] => {
+    const [history, setHistory] = useState<T[]>([initialState]);
+    const [index, setIndex] = useState(0);
+
+    const setState = (newState: T, fromHistory = false) => {
+        if (fromHistory) {
+            setHistory(prev => {
+                const newHistory = [...prev];
+                newHistory[index] = newState;
+                return newHistory;
+            });
+            return;
+        }
+        
+        const newHistory = history.slice(0, index + 1);
+        newHistory.push(newState);
+        setHistory(newHistory);
+        setIndex(newHistory.length - 1);
+    };
+
+    const undo = () => index > 0 && setIndex(index - 1);
+    const redo = () => index < history.length - 1 && setIndex(index + 1);
+
+    return [history[index], setState, undo, redo, index > 0, index < history.length - 1];
+};
+
+
 type InteractionState = {
   action: 'move' | 'resize-br' | 'resize-bl' | 'resize-tr' | 'resize-tl' | 'rotate';
   elementId: string;
-  offsetX: number;
-  offsetY: number;
-  startX: number;
-  startY: number;
-  startWidth?: number;
-  startHeight?: number;
-  startAngle?: number;
-  centerX?: number;
-  centerY?: number;
+  initialState: LabelTemplate; // For undo history
 };
+
+type SnapGuide = { type: 'v' | 'h', position: number, start: number, end: number };
 
 interface TemplateDesignerPageProps {
   template: LabelTemplate | null;
+  presets: PresetProduct[];
   onSave: (template: LabelTemplate) => void;
   onCancel: () => void;
 }
@@ -59,9 +82,33 @@ const Accordion: React.FC<{ title: string; children: React.ReactNode, isOpen: bo
     </div>
 );
 
+const Ruler: React.FC<{ orientation: 'horizontal' | 'vertical', size: number, zoom: number, scrollPos: number }> = React.memo(({ orientation, size, zoom, scrollPos }) => {
+    const ticks = [];
+    const interval = zoom > 1.5 ? 5 : zoom > 0.7 ? 10 : 20;
+    const numTicks = Math.ceil(size / interval);
 
-const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, onSave, onCancel }) => {
-  const [editedTemplate, setEditedTemplate] = useState<LabelTemplate>(() => 
+    for (let i = 0; i <= numTicks; i++) {
+        const pos = i * interval;
+        const isMajor = i % 5 === 0;
+        const tickLength = isMajor ? 10 : 5;
+        const style = orientation === 'horizontal' 
+            ? { left: `${(pos * zoom) - scrollPos}px`, height: `${tickLength}px` } 
+            : { top: `${(pos * zoom) - scrollPos}px`, width: `${tickLength}px` };
+
+        ticks.push(<div key={`tick-${i}`} className="tick" style={style} />);
+        if (isMajor && i > 0) {
+            const labelStyle = orientation === 'horizontal' 
+                ? { left: `${(pos * zoom) - scrollPos}px` } 
+                : { top: `${(pos * zoom) - scrollPos}px` };
+            ticks.push(<div key={`label-${i}`} className="label" style={labelStyle}>{pos}</div>);
+        }
+    }
+    return <div className={`ruler ${orientation}`}>{ticks}</div>;
+});
+
+
+const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, presets, onSave, onCancel }) => {
+  const [editedTemplate, setEditedTemplate, undo, redo, canUndo, canRedo] = useHistory<LabelTemplate>(
     template || {
       id: crypto.randomUUID(),
       name: 'New Template',
@@ -70,33 +117,47 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
       elements: [],
     }
   );
+  
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [openSections, setOpenSections] = useState({ pos: true, content: true, style: true });
   const [zoom, setZoom] = useState(1);
   const [interaction, setInteraction] = useState<InteractionState | null>(null);
   const [contextMenu, setContextMenu] = useState<{x: number, y: number, elementId: string} | null>(null);
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const [previewProductId, setPreviewProductId] = useState<string>('placeholders');
+  const [showGrid, setShowGrid] = useState(true);
+  const [rulerScroll, setRulerScroll] = useState({ x: 0, y: 0 });
+  
+  const interactionRef = useRef(interaction);
+  interactionRef.current = interaction;
 
   const canvasRef = useRef<HTMLDivElement>(null);
   const pageRef = useRef<HTMLDivElement>(null);
-
-  const updateElement = useCallback((id: string, updates: Partial<LayoutElement>) => {
-    setEditedTemplate(prev => ({
-      ...prev,
-      elements: prev.elements.map(el => el.id === id ? { ...el, ...updates } : el),
-    }));
-  }, []);
+  const designerAreaRef = useRef<HTMLDivElement>(null);
+  
+  const updateElement = useCallback((id: string, updates: Partial<LayoutElement>, pushHistory = true) => {
+    const newState = {
+      ...editedTemplate,
+      elements: editedTemplate.elements.map(el => el.id === id ? { ...el, ...updates } : el),
+    };
+    setEditedTemplate(newState, !pushHistory);
+  }, [editedTemplate, setEditedTemplate]);
 
   // --- Keyboard & Global Handlers ---
   useEffect(() => {
      if(pageRef.current) pageRef.current.focus();
      
      const handleKeyDown = (e: KeyboardEvent) => {
-         if (e.key === 'Escape') {
+         if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+            e.preventDefault();
+            e.shiftKey ? redo() : undo();
+         } else if ((e.metaKey || e.ctrlKey) && e.key === 'y') {
+            e.preventDefault();
+            redo();
+         } else if (e.key === 'Escape') {
             setSelectedElementId(null);
             setContextMenu(null);
-            onCancel();
-         }
-         if (e.key === 'Delete' && selectedElementId) {
+         } else if (e.key === 'Delete' && selectedElementId) {
              handleDeleteElement(selectedElementId);
          }
      };
@@ -113,7 +174,17 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
         window.removeEventListener('keydown', handleKeyDown);
         document.removeEventListener('mousedown', handleClickOutside);
      }
-  }, [selectedElementId, onCancel, contextMenu]);
+  }, [selectedElementId, onCancel, contextMenu, undo, redo]);
+  
+  useEffect(() => {
+    const area = designerAreaRef.current;
+    if (!area) return;
+    const handleScroll = () => {
+        setRulerScroll({ x: area.scrollLeft, y: area.scrollTop });
+    };
+    area.addEventListener('scroll', handleScroll);
+    return () => area.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // --- Element CRUD ---
   const addElement = (type: LayoutElement['type']) => {
@@ -131,12 +202,12 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
          ...(type === 'line' && { strokeWidth: 1, strokeColor: '#000000' }),
          ...((type === 'barcode' || type === 'qrcode') && { codeDataBinding: 'sku' }),
     };
-    setEditedTemplate(prev => ({...prev, elements: [...prev.elements, newElement]}));
+    setEditedTemplate({...editedTemplate, elements: [...editedTemplate.elements, newElement]});
     setSelectedElementId(newElement.id);
   }
   
   const handleDeleteElement = (id: string) => {
-      setEditedTemplate(prev => ({...prev, elements: prev.elements.filter(el => el.id !== id)}));
+      setEditedTemplate({...editedTemplate, elements: editedTemplate.elements.filter(el => el.id !== id)});
       setSelectedElementId(null);
   };
   
@@ -151,97 +222,109 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
         y: original.y + 5,
         zIndex: newZIndex,
       };
-      setEditedTemplate(prev => ({...prev, elements: [...prev.elements, newElement]}));
+      setEditedTemplate({...editedTemplate, elements: [...editedTemplate.elements, newElement]});
       setSelectedElementId(newElement.id);
   };
   
   const handleReorderElement = (id: string, direction: 'forward' | 'backward' | 'front' | 'back') => {
-    const elements = editedTemplate.elements;
-    const currentIndex = elements.findIndex(el => el.id === id);
-    if (currentIndex === -1) return;
+    let newElements = [...editedTemplate.elements];
+    const targetElement = newElements.find(el => el.id === id);
+    if(!targetElement) return;
 
-    const sortedByZ = [...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
-    const currentZIndex = sortedByZ.findIndex(el => el.id === id);
-
-    let newElements = [...elements];
-    const targetElement = newElements.find(el => el.id === id)!;
-
+    const sortedByZ = newElements.slice().sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    
     if (direction === 'front') {
-        const maxZ = Math.max(...elements.map(e => e.zIndex || 0));
-        targetElement.zIndex = maxZ + 1;
+        targetElement.zIndex = (sortedByZ[sortedByZ.length - 1]?.zIndex || 0) + 1;
     } else if (direction === 'back') {
-        const minZ = Math.min(...elements.map(e => e.zIndex || 0));
-        targetElement.zIndex = minZ - 1;
-    } else if (direction === 'forward' && currentZIndex < sortedByZ.length - 1) {
-        const nextElement = sortedByZ[currentZIndex + 1];
-        [targetElement.zIndex, nextElement.zIndex] = [nextElement.zIndex, targetElement.zIndex];
-    } else if (direction === 'backward' && currentZIndex > 0) {
-        const prevElement = sortedByZ[currentZIndex - 1];
-        [targetElement.zIndex, prevElement.zIndex] = [prevElement.zIndex, targetElement.zIndex];
+        targetElement.zIndex = (sortedByZ[0]?.zIndex || 0) - 1;
+    } else {
+       // This logic is simplified but effective. A robust implementation would re-index all z-indices.
+       const currentZ = targetElement.zIndex || 0;
+       if (direction === 'forward') targetElement.zIndex = currentZ + 1.5;
+       if (direction === 'backward') targetElement.zIndex = currentZ - 1.5;
+       
+       newElements.sort((a,b) => (a.zIndex || 0) - (b.zIndex || 0)).forEach((el, index) => el.zIndex = index);
     }
     
-    setEditedTemplate(prev => ({...prev, elements: newElements}));
+    setEditedTemplate({...editedTemplate, elements: newElements});
   };
 
   // --- Interactive Canvas Logic ---
   const handleInteractionStart = (e: React.MouseEvent, action: InteractionState['action'], elementId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!canvasRef.current) return;
-    
-    const element = editedTemplate.elements.find(el => el.id === elementId);
-    if (!element) return;
     setSelectedElementId(elementId);
-
-    const canvasRect = canvasRef.current.getBoundingClientRect();
-    const startX = (e.clientX - canvasRect.left) / canvasRect.width * 100;
-    const startY = (e.clientY - canvasRect.top) / canvasRect.height * 100;
-
-    const centerX = element.x + element.width / 2;
-    const centerY = element.y + element.height / 2;
-
-    setInteraction({
-      action, elementId,
-      offsetX: startX - element.x,
-      offsetY: startY - element.y,
-      startX, startY,
-      startWidth: element.width,
-      startHeight: element.height,
-      startAngle: element.rotation || 0,
-      centerX, centerY
-    });
+    setInteraction({ action, elementId, initialState: editedTemplate });
   };
 
   const handleInteractionMove = useCallback((e: MouseEvent) => {
-    if (!interaction || !canvasRef.current) return;
+    if (!interactionRef.current || !canvasRef.current) return;
     e.preventDefault();
+    const { elementId, initialState } = interactionRef.current;
 
     const canvasRect = canvasRef.current.getBoundingClientRect();
-    const mouseX = (e.clientX - canvasRect.left) / canvasRect.width * 100;
-    const mouseY = (e.clientY - canvasRect.top) / canvasRect.height * 100;
-    const element = editedTemplate.elements.find(el => el.id === interaction.elementId);
-    if (!element) return;
+    const mouseX = (e.clientX - canvasRect.left) / zoom;
+    const mouseY = (e.clientY - canvasRect.top) / zoom;
+    
+    const canvasW = canvasRect.width / zoom;
+    const canvasH = canvasRect.height / zoom;
+    
+    let currentElementState = initialState.elements.find(el => el.id === elementId)!;
+    
+    // Snapping logic
+    const SNAP_THRESHOLD = (5 / zoom);
+    const newGuides: SnapGuide[] = [];
+    let snappedX = mouseX;
+    let snappedY = mouseY;
+    
+    const movingElBounds = {
+        left: currentElementState.x/100 * canvasW,
+        cx: (currentElementState.x + currentElementState.width/2)/100 * canvasW,
+        right: (currentElementState.x + currentElementState.width)/100 * canvasW,
+        top: currentElementState.y/100 * canvasH,
+        cy: (currentElementState.y + currentElementState.height/2)/100 * canvasH,
+        bottom: (currentElementState.y + currentElementState.height)/100 * canvasH,
+    };
+    
+    const checkSnap = (movingVal: number, staticVal: number, setter: (val: number) => void) => {
+        if (Math.abs(movingVal - staticVal) < SNAP_THRESHOLD) {
+            setter(staticVal);
+            return true;
+        }
+        return false;
+    };
+    
+    // Snap targets: other elements and canvas center
+    const targets = [
+        ...initialState.elements.filter(el => el.id !== elementId).map(el => ({
+            left: el.x/100 * canvasW, cx: (el.x + el.width/2)/100 * canvasW, right: (el.x + el.width)/100 * canvasW,
+            top: el.y/100 * canvasH, cy: (el.y + el.height/2)/100 * canvasH, bottom: (el.y + el.height)/100 * canvasH,
+        })),
+        { cx: canvasW / 2, cy: canvasH / 2 } // Canvas center
+    ];
 
-    switch (interaction.action) {
-        case 'move':
-            updateElement(interaction.elementId, { x: mouseX - interaction.offsetX, y: mouseY - interaction.offsetY });
-            break;
-        case 'resize-br':
-            updateElement(interaction.elementId, { width: mouseX - element.x, height: mouseY - element.y });
-            break;
-        case 'rotate':
-            const dx = mouseX - interaction.centerX!;
-            const dy = mouseY - interaction.centerY!;
-            const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-            updateElement(interaction.elementId, { rotation: Math.round(angle) + 90 });
-            break;
-        // Add other resize handlers similarly if needed
-    }
-  }, [interaction, editedTemplate.elements, updateElement]);
+    targets.forEach(target => {
+        if (checkSnap(movingElBounds.left, target.left, val => snappedX = val)) newGuides.push({type: 'v', position: target.left, start: Math.min(movingElBounds.top, target.top), end: Math.max(movingElBounds.bottom, target.bottom)});
+        if (checkSnap(movingElBounds.cx, target.cx, val => snappedX = val - (currentElementState.width/200 * canvasW))) newGuides.push({type: 'v', position: target.cx, start: Math.min(movingElBounds.top, target.cy), end: Math.max(movingElBounds.bottom, target.cy)});
+        if (checkSnap(movingElBounds.right, target.right, val => snappedX = val - (currentElementState.width/100 * canvasW))) newGuides.push({type: 'v', position: target.right, start: Math.min(movingElBounds.top, target.top), end: Math.max(movingElBounds.bottom, target.bottom)});
+        
+        if (checkSnap(movingElBounds.top, target.top, val => snappedY = val)) newGuides.push({type: 'h', position: target.top, start: Math.min(movingElBounds.left, target.left), end: Math.max(movingElBounds.right, target.right)});
+        if (checkSnap(movingElBounds.cy, target.cy, val => snappedY = val - (currentElementState.height/200 * canvasH))) newGuides.push({type: 'h', position: target.cy, start: Math.min(movingElBounds.left, target.cx), end: Math.max(movingElBounds.right, target.cx)});
+        if (checkSnap(movingElBounds.bottom, target.bottom, val => snappedY = val - (currentElementState.height/100 * canvasH))) newGuides.push({type: 'h', position: target.bottom, start: Math.min(movingElBounds.left, target.left), end: Math.max(movingElBounds.right, target.bottom)});
+    });
+    setSnapGuides(newGuides);
+    
+    updateElement(elementId, { x: snappedX/canvasW * 100, y: snappedY/canvasH * 100 }, false);
+
+  }, [zoom, updateElement]);
 
   const handleInteractionEnd = useCallback(() => {
+    if (interactionRef.current) {
+        setEditedTemplate(editedTemplate); // This pushes the final state to history
+    }
     setInteraction(null);
-  }, []);
+    setSnapGuides([]);
+  }, [editedTemplate, setEditedTemplate]);
 
   useEffect(() => {
     if (interaction) {
@@ -260,10 +343,14 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
       setContextMenu({ x: e.clientX, y: e.clientY, elementId });
   };
   
+  const previewProductData = presets.find(p => p.id === previewProductId);
+  
   // --- Render ---
   const selectedElement = editedTemplate.elements.find(el => el.id === selectedElementId);
   const sortedElements = editedTemplate.elements.slice().sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
   const isArabicElement = selectedElement?.type === 'text' && (selectedElement.fontFamily === 'Noto Kufi Arabic' || selectedElement.dataBinding?.endsWith('_ar'));
+  const canvasPixelWidth = editedTemplate.widthMm * 5;
+  const canvasPixelHeight = editedTemplate.heightMm * 5;
 
   return (
     <div ref={pageRef} tabIndex={-1} className="flex flex-col md:flex-row gap-6 h-[calc(100vh-10rem)] outline-none">
@@ -375,16 +462,16 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                              <option value="top">Top</option><option value="middle">Middle</option><option value="bottom">Bottom</option>
                            </select>
                         </div>
+                        {isArabicElement && (
+                            <div className="mt-4">
+                                <label>Text Direction</label>
+                                <select value={selectedElement.direction || 'rtl'} onChange={e => updateElement(selectedElementId!, {direction: e.target.value as any})} className="p-1 border rounded w-full">
+                                    <option value="ltr">Left-to-Right</option>
+                                    <option value="rtl">Right-to-Left</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
-                    {isArabicElement && (
-                        <div>
-                            <label>Text Direction</label>
-                            <select value={selectedElement.direction || 'rtl'} onChange={e => updateElement(selectedElementId!, {direction: e.target.value as any})} className="p-1 border rounded w-full">
-                                <option value="ltr">Left-to-Right</option>
-                                <option value="rtl">Right-to-Left</option>
-                            </select>
-                        </div>
-                    )}
                     <div>
                          <label className="flex items-center gap-2"><input type="checkbox" checked={!!selectedElement.isUppercase} onChange={e => updateElement(selectedElementId!, {isUppercase: e.target.checked})} /> Uppercase</label>
                     </div>
@@ -413,35 +500,56 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
 
       {/* Canvas */}
       <div className="flex-grow bg-white p-6 rounded-lg shadow-lg flex flex-col order-1 md:order-2">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
              <input 
                 type="text"
                 value={editedTemplate.name}
-                onChange={(e) => setEditedTemplate(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => setEditedTemplate({ ...editedTemplate, name: e.target.value, isDefault: false })}
                 className="text-2xl font-bold text-stone-700 p-1 -m-1 rounded-md focus:ring-2 focus:ring-indigo-500"
              />
              <div className="flex items-center gap-2 text-sm">
-                 <input type="number" value={editedTemplate.widthMm} onChange={e => setEditedTemplate(p => ({...p, widthMm: +e.target.value}))} className="w-16 p-1 border rounded" />
+                 <input type="number" value={editedTemplate.widthMm} onChange={e => setEditedTemplate({ ...editedTemplate, widthMm: +e.target.value, isDefault: false })} className="w-16 p-1 border rounded" />
                  <span>mm &times;</span>
-                 <input type="number" value={editedTemplate.heightMm} onChange={e => setEditedTemplate(p => ({...p, heightMm: +e.target.value}))} className="w-16 p-1 border rounded" />
+                 <input type="number" value={editedTemplate.heightMm} onChange={e => setEditedTemplate({ ...editedTemplate, heightMm: +e.target.value, isDefault: false })} className="w-16 p-1 border rounded" />
                  <span>mm</span>
              </div>
         </div>
-        <div className="flex-grow bg-stone-100 rounded-md p-4 flex items-center justify-center relative overflow-hidden">
+        <div ref={designerAreaRef} className="flex-grow bg-stone-100 rounded-md p-4 flex items-center justify-center relative overflow-auto">
           <div
             className="relative"
-            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s' }}
+            style={{ transform: `scale(${zoom})`, transformOrigin: 'center center', transition: 'transform 0.2s', width: canvasPixelWidth, height: canvasPixelHeight }}
           >
+              <div className="absolute -top-[25px] -left-[25px] right-0 bottom-0 pointer-events-none">
+                  <Ruler orientation="horizontal" size={editedTemplate.widthMm} zoom={5 * zoom} scrollPos={rulerScroll.x} />
+                  <Ruler orientation="vertical" size={editedTemplate.heightMm} zoom={5 * zoom} scrollPos={rulerScroll.y} />
+              </div>
               <div
                 ref={canvasRef}
                 className="bg-white shadow-md relative overflow-hidden"
-                style={{ width: `${editedTemplate.widthMm * 5}px`, height: `${editedTemplate.heightMm * 5}px`}}
+                style={{ width: canvasPixelWidth, height: canvasPixelHeight }}
                 onClick={(e) => { if(e.target === canvasRef.current) setSelectedElementId(null) }}
               >
+                {showGrid && <div className="grid-overlay" />}
+                
+                {/* Data Preview Layer */}
+                 {previewProductId !== 'placeholders' && previewProductData && (
+                    <div className="absolute inset-0 pointer-events-none z-0">
+                         <LabelPreview 
+                            data={{
+                                ...initialLabelData,
+                                ...previewProductData.data,
+                                expiryDate: calculateExpiryDate(initialLabelData.productionDate, previewProductData.shelfLifeDays)
+                            }} 
+                            template={editedTemplate} 
+                            labelCount={1} printDensity="normal" />
+                    </div>
+                )}
+
+                {/* Design Elements Layer */}
                 {sortedElements.map(el => (
                   <div
                     key={el.id}
-                    className={`template-element absolute ${selectedElementId === el.id ? '' : 'hover:outline'}`}
+                    className={`template-element absolute ${previewProductId !== 'placeholders' ? 'opacity-30 bg-white/20' : ''} ${selectedElementId === el.id ? '' : 'hover:outline'}`}
                     style={{
                       left: `${el.x}%`, top: `${el.y}%`,
                       width: `${el.width}%`, height: `${el.height}%`,
@@ -468,6 +576,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                   </div>
                 ))}
                 
+                {/* Selection Box & Resizers */}
                 {selectedElement && (
                     <div className="selection-box" style={{ left: `${selectedElement.x}%`, top: `${selectedElement.y}%`, width: `${selectedElement.width}%`, height: `${selectedElement.height}%`, transform: `rotate(${selectedElement.rotation || 0}deg)` }}>
                         <div className="rotator" onMouseDown={(e) => handleInteractionStart(e, 'rotate', selectedElement.id)}><div className="rotation-line"/></div>
@@ -477,12 +586,38 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                         <div className="resizer br" onMouseDown={(e) => handleInteractionStart(e, 'resize-br', selectedElement.id)}></div>
                     </div>
                 )}
+                
+                {/* Snap Guides */}
+                {snapGuides.map((guide, i) => (
+                    <div
+                        key={i}
+                        className={`snap-guide ${guide.type === 'v' ? 'vertical' : 'horizontal'}`}
+                        style={guide.type === 'v' ? 
+                            { left: guide.position, top: guide.start, height: guide.end - guide.start } : 
+                            { top: guide.position, left: guide.start, width: guide.end - guide.start }}
+                    />
+                ))}
               </div>
           </div>
-          <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-sm rounded-lg shadow-md flex items-center p-1">
-              <div className="tooltip"><button onClick={() => setZoom(z => z > 0.2 ? z - 0.1 : z)} className="p-2 rounded-md hover:bg-stone-100"><ZoomOutIcon className="h-5 w-5" /><span className="tooltip-text">Zoom Out</span></button></div>
-              <span className="text-sm font-medium text-stone-600 w-12 text-center">{Math.round(zoom * 100)}%</span>
-              <div className="tooltip"><button onClick={() => setZoom(z => z < 3 ? z + 0.1 : z)} className="p-2 rounded-md hover:bg-stone-100"><ZoomInIcon className="h-5 w-5" /><span className="tooltip-text">Zoom In</span></button></div>
+          <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-md flex items-center p-1 text-sm">
+             <label htmlFor="preview-product" className="px-2 font-medium text-stone-600">Preview with:</label>
+             <select id="preview-product" value={previewProductId} onChange={e => setPreviewProductId(e.target.value)} className="bg-transparent font-medium border-0 focus:ring-0">
+                <option value="placeholders">Placeholder Data</option>
+                {presets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+             </select>
+          </div>
+          <div className="absolute bottom-4 right-4 flex gap-2">
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md flex items-center p-1">
+                <div className="tooltip"><button onClick={undo} disabled={!canUndo} className="p-2 rounded-md hover:bg-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"><UndoIcon className="h-5 w-5" /><span className="tooltip-text">Undo (Ctrl+Z)</span></button></div>
+                <div className="tooltip"><button onClick={redo} disabled={!canRedo} className="p-2 rounded-md hover:bg-stone-100 disabled:opacity-50 disabled:cursor-not-allowed"><RedoIcon className="h-5 w-5" /><span className="tooltip-text">Redo (Ctrl+Y)</span></button></div>
+            </div>
+            <div className="bg-white/80 backdrop-blur-sm rounded-lg shadow-md flex items-center p-1">
+                 <div className="tooltip"><button onClick={() => setShowGrid(!showGrid)} className={`p-2 rounded-md hover:bg-stone-100 ${showGrid ? 'text-indigo-600' : ''}`}><GridIcon className="h-5 w-5" /><span className="tooltip-text">Toggle Grid</span></button></div>
+                <div className="w-px h-5 bg-stone-200 mx-1"></div>
+                <div className="tooltip"><button onClick={() => setZoom(z => z > 0.2 ? z - 0.1 : z)} className="p-2 rounded-md hover:bg-stone-100"><ZoomOutIcon className="h-5 w-5" /><span className="tooltip-text">Zoom Out</span></button></div>
+                <span className="text-sm font-medium text-stone-600 w-12 text-center">{Math.round(zoom * 100)}%</span>
+                <div className="tooltip"><button onClick={() => setZoom(z => z < 3 ? z + 0.1 : z)} className="p-2 rounded-md hover:bg-stone-100"><ZoomInIcon className="h-5 w-5" /><span className="tooltip-text">Zoom In</span></button></div>
+            </div>
           </div>
         </div>
       </div>

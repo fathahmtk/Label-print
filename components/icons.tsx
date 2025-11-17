@@ -68,7 +68,7 @@ export const DuplicateIcon: React.FC<IconProps> = ({ className }) => (
 );
 
 export const RotateIcon: React.FC<IconProps> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fillRule="evenodd" d="M15.312 11.225A5.5 5.5 0 0111 16.5a5.5 5.5 0 01-4.43-8.812l-1.68-1.68a.75.75 0 011.06-1.06l1.68 1.68A5.5 5.5 0 0115.312 11.225z" clipRule="evenodd" />
         <path fillRule="evenodd" d="M1.625 5.625a.75.75 0 011.06 0l1.68 1.68A5.5 5.5 0 018.8 3.5a5.5 5.5 0 014.43 8.812l1.68 1.68a.75.75 0 01-1.06 1.06l-1.68-1.68A5.5 5.5 0 014.688 8.775L3 10.463V6.687a.75.75 0 01.75-.75h2.775L1.625 5.625z" clipRule="evenodd" />
     </svg>
@@ -97,5 +97,29 @@ export const ImportIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
         <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+    </svg>
+);
+
+export const UndoIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path fillRule="evenodd" d="M7.75 2.5a.75.75 0 00-1.5 0v1.563c-1.99.24-3.79.976-5.266 2.193a.75.75 0 001.12 1.006A6.993 6.993 0 017 6.002V4a.75.75 0 01.75-.75h4.5a.75.75 0 010 1.5h-3.75v1.563c1.99-.24 3.79-.976 5.266-2.193a.75.75 0 10-1.12-1.006A6.993 6.993 0 0113 6.002V4a.75.75 0 00-.75-.75h-4.5z" clipRule="evenodd" />
+      <path fillRule="evenodd" d="M3.007 8.163a.75.75 0 00-1.12 1.006 8.5 8.5 0 1016.226 0 .75.75 0 10-1.12-1.006 7 7 0 11-14.001 0c.005 0 .01 0 .015 0z" clipRule="evenodd" />
+    </svg>
+);
+
+export const RedoIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M12.25 2.5a.75.75 0 011.5 0v1.563c1.99.24 3.79.976 5.266 2.193a.75.75 0 11-1.12 1.006A6.993 6.993 0 0013 6.002V4a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h3.75v1.563c-1.99-.24-3.79-.976-5.266-2.193a.75.75 0 011.12-1.006A6.993 6.993 0 017 6.002V4a.75.75 0 01.75-.75h4.5z" clipRule="evenodd" />
+        <path fillRule="evenodd" d="M16.993 8.163a.75.75 0 011.12 1.006 8.5 8.5 0 11-16.226 0 .75.75 0 111.12-1.006 7 7 0 1014.001 0c-.005 0-.01 0-.015 0z" clipRule="evenodd" />
+    </svg>
+);
+
+export const GridIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+      <path d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1z" />
+      <path d="M6 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zM10 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zM14 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1z" />
+      <path d="M17 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1z" />
+      <path d="M3 6a1 1 0 00-1 1v1a1 1 0 102 0V7a1 1 0 00-1-1zM3 10a1 1 0 00-1 1v1a1 1 0 102 0v-1a1 1 0 00-1-1z" />
+      <path d="M3 14a1 1 0 00-1 1v1a1 1 0 102 0v-1a1 1 0 00-1-1z" />
     </svg>
 );

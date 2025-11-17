@@ -1,16 +1,18 @@
 import React from 'react';
 import type { LabelTemplate } from '../types';
-import LabelPreview from '../components/LabelPreview'; // To be used for thumbnail
+import LabelPreview from '../components/LabelPreview'; 
 import { initialLabelData } from '../data/presets';
+import { DuplicateIcon } from '../components/icons';
 
 interface TemplatesPageProps {
   templates: LabelTemplate[];
   onAddNew: () => void;
   onEdit: (id: string) => void;
+  onClone: (id: string) => void;
   onDelete: (id:string) => void;
 }
 
-const TemplatesPage: React.FC<TemplatesPageProps> = ({ templates, onAddNew, onEdit, onDelete }) => {
+const TemplatesPage: React.FC<TemplatesPageProps> = ({ templates, onAddNew, onEdit, onClone, onDelete }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-200">
@@ -30,6 +32,11 @@ const TemplatesPage: React.FC<TemplatesPageProps> = ({ templates, onAddNew, onEd
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {templates.map(template => (
             <div key={template.id} className="group relative bg-stone-50 rounded-lg p-4 flex flex-col border border-stone-200 hover:shadow-lg hover:border-stone-300 transition-all">
+                {template.isDefault && (
+                    <div className="absolute top-2 left-2 bg-stone-200 text-stone-600 text-[10px] font-bold px-2 py-0.5 rounded-full z-10">
+                        STANDARD
+                    </div>
+                )}
                 <div 
                     className="w-full bg-white border rounded-md mb-4 shadow-inner overflow-hidden"
                     style={{ aspectRatio: `${template.widthMm} / ${template.heightMm}`}}
@@ -40,13 +47,18 @@ const TemplatesPage: React.FC<TemplatesPageProps> = ({ templates, onAddNew, onEd
                 </div>
                 <h3 className="font-bold text-md text-stone-800 flex-grow">{template.name}</h3>
                 <p className="text-xs text-stone-500">{template.widthMm}mm x {template.heightMm}mm</p>
-                <div className="absolute top-3 right-3 flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => onEdit(template.id)} className="p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-stone-600 hover:text-stone-900 hover:bg-white shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L16.732 3.732z" /></svg>
-                    </button>
-                    <button onClick={() => onDelete(template.id)} className="p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-red-600 hover:text-red-800 hover:bg-white shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                <div className="mt-4 pt-3 border-t border-stone-200 flex justify-end gap-2">
+                    {template.isDefault ? (
+                        <button onClick={() => onClone(template.id)} className="w-full text-sm font-medium text-stone-600 hover:text-stone-900 bg-white border border-stone-300 rounded-md py-2 flex items-center justify-center gap-2 hover:bg-stone-50">
+                            <DuplicateIcon className="h-4 w-4" />
+                            Clone & Edit
+                        </button>
+                    ) : (
+                        <>
+                           <button onClick={() => onDelete(template.id)} className="text-sm font-medium text-red-600 hover:text-red-800 p-2">Delete</button>
+                           <button onClick={() => onEdit(template.id)} className="flex-grow text-sm font-medium text-white bg-stone-700 hover:bg-stone-800 rounded-md py-2">Edit</button>
+                        </>
+                    )}
                 </div>
             </div>
           ))}

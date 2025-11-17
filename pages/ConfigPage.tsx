@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import type { PresetProduct } from '../types';
+import type { PresetProduct, BrandingSettings } from '../types';
 import PresetEditor from '../components/PresetEditor';
 
 interface ConfigPageProps {
@@ -8,9 +8,10 @@ interface ConfigPageProps {
     onUpdate: (updatedPreset: PresetProduct) => void;
     onDelete: (id: string) => void;
     addToast: (message: string, type?: 'success' | 'error') => void;
+    brandingSettings: BrandingSettings;
 }
 
-const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDelete, addToast }) => {
+const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDelete, addToast, brandingSettings }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPreset, setEditingPreset] = useState<PresetProduct | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -113,6 +114,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDel
                     onSave={handleSave}
                     onClose={() => setIsModalOpen(false)}
                     addToast={addToast}
+                    brandingSettings={brandingSettings}
                 />
             )}
         </div>

@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { PresetProduct } from '../types';
+import type { PresetProduct, BrandingSettings } from '../types';
 
 interface PresetEditorProps {
     preset: PresetProduct | null;
     onSave: (presetData: Omit<PresetProduct, 'id' | 'lastModified'> | PresetProduct) => void;
     onClose: () => void;
     addToast: (message: string, type?: 'success' | 'error') => void;
+    brandingSettings: BrandingSettings;
 }
 
-const emptyData = {
+const emptyData = (brandingSettings: BrandingSettings) => ({
     name: '',
     shelfLifeDays: 7,
     data: {
@@ -21,8 +22,8 @@ const emptyData = {
       ingredients_ar: '',
       allergens: '',
       allergens_ar: '',
-      mfgAndDist: '',
-      mfgAndDist_ar: '',
+      mfgAndDist: brandingSettings.defaultMfgAndDist,
+      mfgAndDist_ar: brandingSettings.defaultMfgAndDist_ar,
       disclaimer: '',
       disclaimer_ar: '',
       quantityValue: '1',
@@ -31,23 +32,24 @@ const emptyData = {
       unitWeightUnit: 'g',
       sku: '',
     }
-}
+});
 
-const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, addToast }) => {
-    const [formData, setFormData] = useState<Omit<PresetProduct, 'id' | 'lastModified'>>(emptyData);
+const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, addToast, brandingSettings }) => {
+    const [formData, setFormData] = useState<Omit<PresetProduct, 'id' | 'lastModified'>>(emptyData(brandingSettings));
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const empty = emptyData(brandingSettings);
         if (preset) {
             setFormData({
                 name: preset.name,
                 shelfLifeDays: preset.shelfLifeDays,
-                data: { ...emptyData.data, ...preset.data },
+                data: { ...empty.data, ...preset.data },
             });
         } else {
-             setFormData(emptyData);
+             setFormData(empty);
         }
-    }, [preset]);
+    }, [preset, brandingSettings]);
 
     // Handle Escape key and focus trapping
     useEffect(() => {

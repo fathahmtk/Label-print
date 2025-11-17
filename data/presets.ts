@@ -1,4 +1,4 @@
-import type { PresetProduct, LabelData, LabelTemplate } from '../types';
+import type { PresetProduct, LabelData, LabelTemplate, BrandingSettings } from '../types';
 
 export const initialPresets: PresetProduct[] = [
   {
@@ -95,6 +95,12 @@ export const initialLabelData: LabelData = {
     sku: ''
 };
 
+export const initialBrandingSettings: BrandingSettings = {
+    defaultLogo: undefined,
+    defaultMfgAndDist: "Hot Bake Co.\nDoha, Qatar",
+    defaultMfgAndDist_ar: "شركة هوت بيك\nالدوحة، قطر"
+};
+
 export const calculateExpiryDate = (startDate: string, days: number): string => {
     if (!startDate || isNaN(days)) return '';
     const parts = startDate.split('-').map(part => parseInt(part, 10));
@@ -105,12 +111,51 @@ export const calculateExpiryDate = (startDate: string, days: number): string => 
 
 export const initialTemplates: LabelTemplate[] = [
     {
-        id: 'template-default-bilingual',
-        name: 'Default Bilingual Side-by-Side',
-        widthMm: 100,
-        heightMm: 50,
-        lastModified: '2023-10-26T11:00:00Z',
-        elements: [
+        id: 'template-ing-40', name: 'ING-40 (40x30mm)', widthMm: 40, heightMm: 30, isDefault: true,
+        lastModified: '2023-10-27T10:00:00Z', elements: [
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 5, y: 5, width: 90, height: 25, fontSize: 8, fontWeight: '900', textAlign: 'center', isUppercase: true },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 5, y: 35, width: 90, height: 60, fontSize: 4, textAlign: 'center' },
+        ]
+    },
+    {
+        id: 'template-ing-60', name: 'ING-60 (60x40mm)', widthMm: 60, heightMm: 40, isDefault: true,
+        lastModified: '2023-10-27T10:01:00Z', elements: [
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 5, y: 5, width: 90, height: 20, fontSize: 10, fontWeight: '900', textAlign: 'center', isUppercase: true },
+            { id: crypto.randomUUID(), type: 'line', x: 10, y: 28, width: 80, height: 0.5, strokeWidth: 1, strokeColor: '#ccc' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 5, y: 35, width: 90, height: 40, fontSize: 5, textAlign: 'left' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'netWeight', x: 5, y: 80, width: 40, height: 15, fontSize: 6, fontWeight: '700', textAlign: 'left' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'expiryDate', x: 50, y: 80, width: 45, height: 15, fontSize: 6, fontWeight: '700', textAlign: 'right' },
+        ]
+    },
+    {
+        id: 'template-ing-80', name: 'ING-80 (80x50mm)', widthMm: 80, heightMm: 50, isDefault: true,
+        lastModified: '2023-10-27T10:02:00Z', elements: [
+            { id: crypto.randomUUID(), type: 'logo', x: 5, y: 8, width: 20, height: 20 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'brandName', x: 5, y: 28, width: 20, height: 10, fontSize: 8, fontFamily: 'Dancing Script', textAlign: 'center' },
+            { id: crypto.randomUUID(), type: 'line', x: 28, y: 8, width: 0.5, height: 84, strokeWidth: 1, strokeColor: '#e5e7eb' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 32, y: 8, width: 63, height: 20, fontSize: 12, fontWeight: '900', textAlign: 'center', isUppercase: true },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 32, y: 30, width: 63, height: 40, fontSize: 5 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'allergens', x: 32, y: 72, width: 63, height: 10, fontSize: 5, fontWeight: '700' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productionDate', x: 5, y: 80, width: 20, height: 10, fontSize: 5, textAlign: 'left' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'expiryDate', x: 5, y: 88, width: 20, height: 10, fontSize: 5, textAlign: 'left' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'netWeight', x: 32, y: 85, width: 63, height: 10, fontSize: 8, fontWeight: '700', textAlign: 'right' },
+        ]
+    },
+    {
+        id: 'template-ing-90', name: 'ING-90 (90x60mm)', widthMm: 90, heightMm: 60, isDefault: true,
+        lastModified: '2023-10-27T10:03:00Z', elements: [
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName_ar', x: 5, y: 5, width: 90, height: 15, fontSize: 12, fontWeight: '700', textAlign: 'center', fontFamily: 'Noto Kufi Arabic' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 5, y: 20, width: 90, height: 15, fontSize: 12, fontWeight: '900', textAlign: 'center', isUppercase: true },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients_ar', x: 55, y: 40, width: 40, height: 45, fontSize: 5, textAlign: 'right', fontFamily: 'Noto Kufi Arabic' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 5, y: 40, width: 40, height: 45, fontSize: 5, textAlign: 'left' },
+            { id: crypto.randomUUID(), type: 'line', x: 50, y: 40, width: 0.2, height: 55, strokeWidth: 1, strokeColor: '#ccc' },
+            { id: crypto.randomUUID(), type: 'barcode', x: 5, y: 85, width: 40, height: 12 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'mfgAndDist', x: 55, y: 88, width: 40, height: 10, fontSize: 4, textAlign: 'right' },
+        ]
+    },
+    {
+        id: 'template-ing-100', name: 'ING-100 (100x60mm)', widthMm: 100, heightMm: 60, isDefault: true,
+        lastModified: '2023-10-27T10:04:00Z', elements: [
             { id: crypto.randomUUID(), type: 'logo', x: 2, y: 5, width: 20, height: 20 },
             { id: crypto.randomUUID(), type: 'text', dataBinding: 'brandName', x: 2, y: 30, width: 20, height: 10, fontSize: 14, fontWeight: '700', textAlign: 'center', fontFamily: 'Dancing Script' },
             { id: crypto.randomUUID(), type: 'line', x: 25, y: 5, width: 0.5, height: 90, strokeWidth: 1, strokeColor: '#e5e7eb' },
@@ -120,28 +165,28 @@ export const initialTemplates: LabelTemplate[] = [
             { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 28, y: 58, width: 68, height: 20, fontSize: 4, textAlign: 'left', fontFamily: 'Montserrat' },
             { id: crypto.randomUUID(), type: 'text', dataBinding: 'allergens_ar', x: 28, y: 80, width: 33, height: 5, fontSize: 4, fontWeight: '700', textAlign: 'right', fontFamily: 'Noto Kufi Arabic' },
             { id: crypto.randomUUID(), type: 'text', dataBinding: 'allergens', x: 63, y: 80, width: 33, height: 5, fontSize: 4, fontWeight: '700', textAlign: 'left', fontFamily: 'Montserrat' },
-            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productionDate', content: 'Prod:', x: 2, y: 75, width: 10, height: 5, fontSize: 5 },
-            { id: crypto.randomUUID(), type: 'text', dataBinding: 'expiryDate', content: 'Exp:', x: 2, y: 82, width: 10, height: 5, fontSize: 5 },
+            { id: crypto.randomUUID(), type: 'text', content: 'Prod:', x: 2, y: 75, width: 6, height: 5, fontSize: 5 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productionDate', x: 8, y: 75, width: 15, height: 5, fontSize: 5 },
+            { id: crypto.randomUUID(), type: 'text', content: 'Exp:', x: 2, y: 82, width: 6, height: 5, fontSize: 5 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'expiryDate', x: 8, y: 82, width: 15, height: 5, fontSize: 5 },
             { id: crypto.randomUUID(), type: 'text', dataBinding: 'netWeight', x: 2, y: 90, width: 20, height: 5, fontSize: 6, fontWeight: '700', textAlign: 'center' }
         ]
     },
     {
-        id: 'template-modern-portrait',
-        name: 'Modern Minimalist Portrait',
-        widthMm: 50,
-        heightMm: 70,
-        lastModified: '2023-10-25T14:00:00Z',
-        elements: [
-           { id: crypto.randomUUID(), type: 'logo', x: 30, y: 5, width: 40, height: 15 },
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'brandName', x: 10, y: 22, width: 80, height: 8, fontSize: 10, fontWeight: '700', textAlign: 'center', fontFamily: 'Dancing Script'},
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 5, y: 32, width: 90, height: 12, fontSize: 12, fontWeight: '900', textAlign: 'center', isUppercase: true },
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName_ar', x: 5, y: 44, width: 90, height: 8, fontSize: 10, fontWeight: '700', textAlign: 'center', fontFamily: 'Noto Kufi Arabic'},
-           { id: crypto.randomUUID(), type: 'line', x: 10, y: 55, width: 80, height: 0.5, strokeWidth: 1, strokeColor: '#e5e7eb' },
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 5, y: 60, width: 90, height: 15, fontSize: 4, textAlign: 'center'},
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients_ar', x: 5, y: 75, width: 90, height: 15, fontSize: 4, textAlign: 'center', fontFamily: 'Noto Kufi Arabic'},
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'netWeight', x: 5, y: 92, width: 30, height: 5, fontSize: 6, fontWeight: '700', textAlign: 'left'},
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'productionDate', content: 'Prod:', x: 40, y: 92, width: 30, height: 5, fontSize: 5 },
-           { id: crypto.randomUUID(), type: 'text', dataBinding: 'expiryDate', content: 'Exp:', x: 70, y: 92, width: 30, height: 5, fontSize: 5 },
+        id: 'template-ing-120', name: 'ING-120 (120x80mm)', widthMm: 120, heightMm: 80, isDefault: true,
+        lastModified: '2023-10-27T10:05:00Z', elements: [
+            { id: crypto.randomUUID(), type: 'logo', x: 3, y: 4, width: 15, height: 15 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'brandName', x: 20, y: 5, width: 50, height: 12, fontSize: 20, fontWeight: '700', fontFamily: 'Dancing Script' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName_ar', x: 50, y: 5, width: 47, height: 10, fontSize: 14, fontWeight: '700', textAlign: 'right', fontFamily: 'Noto Kufi Arabic' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'productName', x: 3, y: 20, width: 94, height: 15, fontSize: 16, fontWeight: '900', isUppercase: true },
+            { id: crypto.randomUUID(), type: 'line', x: 3, y: 36, width: 94, height: 0.5, strokeWidth: 1, strokeColor: '#ccc' },
+            { id: crypto.randomUUID(), type: 'text', content: 'Ingredients:', x: 3, y: 40, width: 45, height: 8, fontSize: 8, fontWeight: '700' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients', x: 3, y: 48, width: 45, height: 32, fontSize: 6 },
+            { id: crypto.randomUUID(), type: 'text', content: 'المكونات:', x: 52, y: 40, width: 45, height: 8, fontSize: 8, fontWeight: '700', textAlign: 'right', fontFamily: 'Noto Kufi Arabic' },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'ingredients_ar', x: 52, y: 48, width: 45, height: 32, fontSize: 6, textAlign: 'right', fontFamily: 'Noto Kufi Arabic' },
+            { id: crypto.randomUUID(), type: 'barcode', x: 5, y: 82, width: 40, height: 15 },
+            { id: crypto.randomUUID(), type: 'qrcode', x: 80, y: 80, width: 15, height: 18 },
+            { id: crypto.randomUUID(), type: 'text', dataBinding: 'mfgAndDist', x: 50, y: 82, width: 28, height: 15, fontSize: 5, textAlign: 'right' },
         ]
     }
 ];

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { PresetProduct, LabelTemplate, ToastMessage } from './types';
+import type { PresetProduct, LabelTemplate, ToastMessage, BrandingSettings } from './types';
 import PrintPage from './pages/PrintPage';
 import ConfigPage from './pages/ConfigPage';
 import TemplatesPage from './pages/TemplatesPage';
@@ -7,7 +7,7 @@ import TemplateDesignerPage from './pages/TemplateDesignerPage';
 import DashboardPage from './pages/DashboardPage';
 import ToastContainer from './components/Toast';
 import ConfirmationModal from './components/ConfirmationModal';
-import { initialPresets, initialTemplates } from './data/presets';
+import { initialPresets, initialTemplates, initialBrandingSettings } from './data/presets';
 import { LogoIcon } from './components/icons';
 
 type Page = 'dashboard' | 'print' | 'config' | 'templates' | 'designer';
@@ -26,6 +26,21 @@ const App: React.FC = () => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
     }, 5000);
   };
+
+  // --- Branding Settings State ---
+  const [brandingSettings, setBrandingSettings] = useState<BrandingSettings>(() => {
+    try {
+      const stored = localStorage.getItem('hotbake-branding');
+      return stored ? JSON.parse(stored) : initialBrandingSettings;
+    } catch (error) {
+      console.error("Failed to parse branding settings from localStorage", error);
+      return initialBrandingSettings;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('hotbake-branding', JSON.stringify(brandingSettings));
+  }, [brandingSettings]);
 
   // --- Presets State ---
   const [presets, setPresets] = useState<PresetProduct[]>(() => {
@@ -77,7 +92,12 @@ const App: React.FC = () => {
   const [templates, setTemplates] = useState<LabelTemplate[]>(() => {
      try {
       const stored = localStorage.getItem('hotbake-templates');
-      return stored ? JSON.parse(stored) : initialTemplates;
+      const parsed = stored ? JSON.parse(stored) : initialTemplates;
+      // Ensure default templates are always present and up-to-date
+      const userTemplates = parsed.filter((t: LabelTemplate) => !t.isDefault);
+      const defaultIds = new Set(initialTemplates.map(t => t.id));
+      const filteredUserTemplates = userTemplates.filter((t: LabelTemplate) => !defaultIds.has(t.id));
+      return [...initialTemplates, ...filteredUserTemplates];
     } catch (error) {
       console.error("Failed to parse templates from localStorage", error);
       return initialTemplates;
@@ -89,7 +109,10 @@ const App: React.FC = () => {
   }, [templates]);
 
   const sortedTemplates = useMemo(() =>
-    [...templates].sort((a, b) => new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime()),
+    [...templates].sort((a, b) => (a.isDefault === b.isDefault) ? 
+        new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime() : 
+        a.isDefault ? -1 : 1
+    ),
   [templates]);
 
   const handleSaveTemplate = (template: LabelTemplate) => {
@@ -108,6 +131,12 @@ const App: React.FC = () => {
   };
   
   const handleDeleteTemplate = (id: string) => {
+     const templateToDelete = templates.find(t => t.id === id);
+     if (templateToDelete?.isDefault) {
+         addToast('Cannot delete a default template.', 'error');
+         return;
+     }
+
      setConfirmation({
         title: 'Delete Template',
         message: 'Are you sure you want to delete this template? This is a critical design asset and cannot be recovered.',
@@ -119,11 +148,32 @@ const App: React.FC = () => {
     });
   };
   
+  const handleCloneAndEditTemplate = (id: string) => {
+    const originalTemplate = templates.find(t => t.id === id);
+    if (!originalTemplate) {
+        addToast('Template to clone not found.', 'error');
+        return;
+    }
+    
+    const clonedTemplate: LabelTemplate = {
+        ...JSON.parse(JSON.stringify(originalTemplate)), // Deep clone
+        id: crypto.randomUUID(),
+        name: `Copy of ${originalTemplate.name}`,
+        isDefault: false,
+        lastModified: new Date().toISOString(),
+    };
+
+    setTemplates(prev => [clonedTemplate, ...prev]);
+    addToast(`Cloned "${originalTemplate.name}" successfully.`);
+    navigateToDesigner(clonedTemplate.id);
+};
+
     // --- Data Import/Export ---
     const handleExport = () => {
         const dataToExport = {
             presets: presets,
-            templates: templates,
+            templates: templates.filter(t => !t.isDefault), // Only export user templates
+            branding: brandingSettings,
         };
         const dataStr = JSON.stringify(dataToExport, null, 2);
         const dataBlob = new Blob([dataStr], { type: 'application/json' });
@@ -150,10 +200,13 @@ const App: React.FC = () => {
                         
                         setConfirmation({
                             title: 'Import Data',
-                            message: 'This will overwrite all current products and templates. Are you sure you want to continue?',
+                            message: 'This will overwrite all current products and custom templates. Are you sure you want to continue?',
                             onConfirm: () => {
                                 setPresets(importedData.presets);
-                                setTemplates(importedData.templates);
+                                setTemplates(prev => [...prev.filter(t => t.isDefault), ...importedData.templates]);
+                                if (importedData.branding) {
+                                  setBrandingSettings(importedData.branding);
+                                }
                                 addToast('Data imported successfully!');
                                 setConfirmation(null);
                             }
@@ -180,25 +233,42 @@ const App: React.FC = () => {
   }
 
   const renderPage = () => {
-    const commonProps = {
-        presets: sortedPresets,
-        templates: sortedTemplates,
-    };
-
     switch (page) {
       case 'dashboard':
-        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} onExport={handleExport} onImport={handleImport} />;
+        return <DashboardPage 
+          presets={sortedPresets} 
+          templates={sortedTemplates} 
+          brandingSettings={brandingSettings}
+          onBrandingChange={setBrandingSettings}
+          setPage={setPage} 
+          onEditTemplate={navigateToDesigner} 
+          onCloneTemplate={handleCloneAndEditTemplate}
+          onExport={handleExport} 
+          onImport={handleImport} 
+          addToast={addToast}
+        />;
       case 'print':
-        return <PrintPage {...commonProps} />;
+        return <PrintPage presets={sortedPresets} templates={sortedTemplates} brandingSettings={brandingSettings} />;
       case 'config':
-        return <ConfigPage presets={commonProps.presets} onAdd={handleAddPreset} onUpdate={handleUpdatePreset} onDelete={handleDeletePreset} addToast={addToast} />;
+        return <ConfigPage presets={sortedPresets} onAdd={handleAddPreset} onUpdate={handleUpdatePreset} onDelete={handleDeletePreset} addToast={addToast} brandingSettings={brandingSettings} />;
       case 'templates':
-        return <TemplatesPage templates={commonProps.templates} onEdit={navigateToDesigner} onAddNew={() => navigateToDesigner(null)} onDelete={handleDeleteTemplate} />;
+        return <TemplatesPage templates={sortedTemplates} onEdit={navigateToDesigner} onClone={handleCloneAndEditTemplate} onAddNew={() => navigateToDesigner(null)} onDelete={handleDeleteTemplate} />;
       case 'designer':
         const editingTemplate = templates.find(t => t.id === editingTemplateId) || null;
-        return <TemplateDesignerPage template={editingTemplate} onSave={handleSaveTemplate} onCancel={() => setPage('templates')} />;
+        return <TemplateDesignerPage template={editingTemplate} presets={sortedPresets} onSave={handleSaveTemplate} onCancel={() => setPage('templates')} />;
       default:
-        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} onExport={handleExport} onImport={handleImport}/>;
+        return <DashboardPage 
+          presets={sortedPresets} 
+          templates={sortedTemplates} 
+          brandingSettings={brandingSettings}
+          onBrandingChange={setBrandingSettings}
+          setPage={setPage} 
+          onEditTemplate={navigateToDesigner} 
+          onCloneTemplate={handleCloneAndEditTemplate}
+          onExport={handleExport} 
+          onImport={handleImport}
+          addToast={addToast}
+        />;
     }
   };
 
