@@ -94,6 +94,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             fontWeight: '400',
             textAlign: 'left',
             verticalAlign: 'middle',
+            direction: 'ltr',
             color: '#000000',
         }),
          ...(type === 'line' && { strokeWidth: 1, strokeColor: '#000000' }),
@@ -128,6 +129,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
 
   const selectedElement = editedTemplate.elements.find(el => el.id === selectedElementId);
   const sortedElements = editedTemplate.elements.slice().sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+  const isArabicElement = selectedElement?.type === 'text' && (selectedElement.fontFamily === 'Noto Kufi Arabic' || selectedElement.dataBinding?.endsWith('_ar'));
 
   const getAlignmentClasses = (el: LayoutElement) => {
       if (el.type !== 'text') return 'flex items-center justify-center';
@@ -160,16 +162,19 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             style={{ width: '100%', aspectRatio: `${editedTemplate.widthMm} / ${editedTemplate.heightMm}` }}
             onClick={(e) => { if(e.target === canvasRef.current) setSelectedElementId(null) }}
           >
-            {sortedElements.map(el => (
+            {sortedElements.map(el => {
+              const isArabic = el.type === 'text' && (el.fontFamily === 'Noto Kufi Arabic' || el.dataBinding?.endsWith('_ar'));
+              return (
               <div
                 key={el.id}
                 className={`template-element absolute cursor-move ${selectedElementId === el.id ? 'selected' : ''} ${el.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''} ${getAlignmentClasses(el)}`}
                 style={{
                   left: `${el.x}%`, top: `${el.y}%`,
                   width: `${el.width}%`, height: `${el.height}%`,
-                  color: el.color, fontFamily: el.fontFamily, fontSize: `${el.fontSize}px`, fontWeight: el.fontWeight,
+                  color: el.color, fontFamily: el.fontFamily, fontSize: `${el.fontSize}px`, 
+                  fontWeight: isArabic && el.fontWeight_ar ? el.fontWeight_ar : el.fontWeight,
                   textAlign: el.textAlign, textTransform: el.isUppercase ? 'uppercase' : 'none', letterSpacing: el.tracking,
-                  direction: el.dataBinding?.endsWith('_ar') ? 'rtl' : 'ltr',
+                  direction: el.direction || (isArabic ? 'rtl' : 'ltr'),
                   zIndex: el.zIndex,
                 }}
                 onClick={(e) => { e.stopPropagation(); setSelectedElementId(el.id); }}
@@ -180,7 +185,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                  { el.type === 'qrcode' && <div className="w-full h-full flex items-center justify-center p-1 text-black"><QrCodeIcon className="w-auto h-full" /></div> }
                  { el.type === 'text' && <div className="w-full h-full overflow-hidden break-words whitespace-pre-wrap">{el.dataBinding ? `{${el.dataBinding}}` : el.content}</div> }
               </div>
-            ))}
+            )})}
           </div>
         </div>
       </div>
@@ -221,7 +226,13 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                     {selectedElement.type === 'text' && (
                         <div>
                             <label>Content Source</label>
-                            <select value={selectedElement.dataBinding || 'static'} onChange={e => updateElement(selectedElementId!, { dataBinding: e.target.value === 'static' ? undefined : e.target.value as DataBindingKey })} className="w-full p-1 border rounded">
+                            <select value={selectedElement.dataBinding || 'static'} onChange={e => {
+                                const updates: Partial<LayoutElement> = { dataBinding: e.target.value === 'static' ? undefined : e.target.value as DataBindingKey };
+                                if (e.target.value.endsWith('_ar')) {
+                                    updates.direction = 'rtl';
+                                }
+                                updateElement(selectedElementId!, updates);
+                            }} className="w-full p-1 border rounded">
                                 <option value="static">Static Text</option>
                                 {dataBindings.map(b => <option key={b.key} value={b.key}>{b.label}</option>)}
                             </select>
@@ -246,7 +257,16 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                      <div>
                         <label>Font</label>
                         <div className="grid grid-cols-2 gap-2">
-                             <select value={selectedElement.fontFamily} onChange={e => updateElement(selectedElementId!, {fontFamily: e.target.value})} className="w-full p-1 border rounded">
+                             <select value={selectedElement.fontFamily} onChange={e => {
+                                const updates: Partial<LayoutElement> = { fontFamily: e.target.value };
+                                if (e.target.value === 'Noto Kufi Arabic') {
+                                    updates.direction = 'rtl';
+                                    if (!selectedElement.fontWeight_ar) {
+                                        updates.fontWeight_ar = '400';
+                                    }
+                                }
+                                updateElement(selectedElementId!, updates);
+                             }} className="w-full p-1 border rounded">
                                 <option value="Montserrat">Montserrat</option>
                                 <option value="Dancing Script">Dancing Script</option>
                                 <option value="Noto Kufi Arabic">Noto Kufi Arabic</option>
@@ -272,6 +292,28 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                     <div>
                          <label className="flex items-center gap-2"><input type="checkbox" checked={!!selectedElement.isUppercase} onChange={e => updateElement(selectedElementId!, {isUppercase: e.target.checked})} /> Uppercase</label>
                     </div>
+
+                    {isArabicElement && (
+                        <div className="pt-4 mt-4 border-t">
+                            <h4 className="font-semibold mb-2">Arabic Text Settings</h4>
+                            <div className="space-y-2">
+                                <div>
+                                    <label>Arabic Font Weight</label>
+                                    <select value={selectedElement.fontWeight_ar || '400'} onChange={e => updateElement(selectedElementId!, {fontWeight_ar: e.target.value as any})} className="p-1 border rounded w-full">
+                                        <option value="400">Regular</option>
+                                        <option value="700">Bold</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Text Direction</label>
+                                    <select value={selectedElement.direction || 'rtl'} onChange={e => updateElement(selectedElementId!, {direction: e.target.value as any})} className="p-1 border rounded w-full">
+                                        <option value="ltr">Left-to-Right</option>
+                                        <option value="rtl">Right-to-Left</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </Accordion>
              )}
               <div className="pt-4 mt-4 border-t">

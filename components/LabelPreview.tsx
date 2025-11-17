@@ -15,6 +15,7 @@ const getBoundValue = (data: LabelData, binding: DataBindingKey): string => {
 
 const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ data, template }) => {
   const renderElement = (element: LayoutElement) => {
+    const isArabic = element.fontFamily === 'Noto Kufi Arabic' || element.dataBinding?.endsWith('_ar');
     const style: React.CSSProperties = {
       position: 'absolute',
       left: `${element.x}%`,
@@ -24,11 +25,11 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
       color: element.color,
       fontFamily: element.fontFamily,
       fontSize: `${element.fontSize}px`, // Will be scaled by parent
-      fontWeight: element.fontWeight,
+      fontWeight: isArabic && element.fontWeight_ar ? element.fontWeight_ar : element.fontWeight,
       textAlign: element.textAlign,
       letterSpacing: element.tracking,
       textTransform: element.isUppercase ? 'uppercase' : 'none',
-      direction: element.dataBinding?.endsWith('_ar') ? 'rtl' : 'ltr',
+      direction: element.direction || (isArabic ? 'rtl' : 'ltr'),
     };
     
     const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');

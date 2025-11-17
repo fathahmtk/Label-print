@@ -49,8 +49,10 @@ export interface LayoutElement {
   fontFamily?: string;
   fontSize?: number; // relative unit
   fontWeight?: '400' | '500' | '600' | '700' | '900';
+  fontWeight_ar?: '400' | '700';
   textAlign?: 'left' | 'center' | 'right';
   verticalAlign?: 'top' | 'middle' | 'bottom';
+  direction?: 'ltr' | 'rtl';
   color?: string;
   isUppercase?: boolean;
   tracking?: string; // letter-spacing
