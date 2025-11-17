@@ -48,23 +48,23 @@ const LabelContent: React.FC<{ data: LabelData }> = ({ data }) => {
     <>
       <main className="flex-grow flex flex-row">
         {/* Left Branding Column */}
-        <div className="w-2/5 bg-stone-50/50 p-6 flex flex-col justify-center items-center text-center border-r border-stone-200">
+        <div className="w-2/5 bg-stone-50/50 p-8 flex flex-col justify-between items-center text-center border-r border-stone-200">
           {data.logo ? (
-            <img src={data.logo} alt="Brand Logo" className="max-h-24 w-auto mb-3 object-contain" />
+            <img src={data.logo} alt="Brand Logo" className="max-h-24 w-auto object-contain" />
           ) : (
             <p className="font-dancing-script text-4xl">{data.brandName}</p>
           )}
-          <h1 className={`font-black tracking-tight leading-snug mt-3 uppercase ${getProductNameFontSize(data.productName)}`}>{data.productName}</h1>
-          <p className={`tracking-[0.3em] font-semibold text-stone-600 mt-2 ${getTaglineFontSize(data.tagline)}`}>{data.tagline}</p>
+          <h1 className={`font-black tracking-tight leading-snug uppercase ${getProductNameFontSize(data.productName)}`}>{data.productName}</h1>
+          <p className={`tracking-[0.3em] font-semibold text-stone-600 ${getTaglineFontSize(data.tagline)}`}>{data.tagline}</p>
           {data.size && (
-            <div className="mt-4 border-t border-b border-stone-300 py-1 px-4">
+            <div className="border-t border-b border-stone-300 py-1 px-4">
               <p className="text-sm font-bold tracking-widest text-stone-700 uppercase">{data.size}</p>
             </div>
           )}
         </div>
 
         {/* Right Info Column */}
-        <div className="w-3/5 p-6 flex flex-col text-sm space-y-4">
+        <div className="w-3/5 p-8 flex flex-col text-sm space-y-4">
           {/* Ingredients Section */}
           <div>
             <h2 className="tracking-widest text-xs font-bold text-stone-800 uppercase">Ingredients</h2>
@@ -130,7 +130,7 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
       <div id="print-area">
         <div className="print-grid-container">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="label-copy aspect-[16/9] bg-white text-black flex flex-col font-['Montserrat'] overflow-hidden">
+            <div key={i} className="label-copy bg-white text-black flex flex-col font-['Montserrat'] overflow-hidden">
               <LabelContent data={data} />
             </div>
           ))}
