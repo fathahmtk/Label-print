@@ -1,14 +1,17 @@
 import React from 'react';
 import type { PresetProduct, LabelTemplate } from '../types';
+import { ExportIcon, ImportIcon } from '../components/icons';
 
 interface DashboardPageProps {
     presets: PresetProduct[];
     templates: LabelTemplate[];
     setPage: (page: 'print' | 'config' | 'templates') => void;
     onEditTemplate: (id: string) => void;
+    onExport: () => void;
+    onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPage, onEditTemplate }) => {
+const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPage, onEditTemplate, onExport, onImport }) => {
 
     const recentPresets = presets.slice(0, 3);
     const recentTemplates = templates.slice(0, 3);
@@ -76,6 +79,40 @@ const DashboardPage: React.FC<DashboardPageProps> = ({ presets, templates, setPa
                             </div>
                         )) : <p className="text-stone-500 text-center py-4">No templates yet.</p>}
                      </div>
+                </div>
+            </div>
+            
+            <div>
+                <h2 className="text-2xl font-bold text-stone-700 mb-4">Data Management</h2>
+                <div className="bg-white p-6 rounded-lg shadow-lg">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <h3 className="font-semibold text-stone-800">Export Data</h3>
+                            <p className="text-sm text-stone-500 mt-1">Download a backup of all your products and templates to a single JSON file.</p>
+                        </div>
+                         <div className="flex justify-start md:justify-end">
+                             <button onClick={onExport} className="flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 rounded-md text-sm font-medium text-stone-700 hover:bg-stone-50">
+                                <ExportIcon className="w-5 h-5" />
+                                <span>Export All Data</span>
+                            </button>
+                        </div>
+                    </div>
+                     <hr className="my-6" />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                            <h3 className="font-semibold text-stone-800">Import Data</h3>
+                            <p className="text-sm text-stone-500 mt-1">
+                                <span className="font-bold text-red-600">Warning:</span> Importing will overwrite all existing data.
+                            </p>
+                        </div>
+                         <div className="flex justify-start md:justify-end">
+                             <label className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-white border border-stone-300 rounded-md text-sm font-medium text-stone-700 hover:bg-stone-50">
+                                <ImportIcon className="w-5 h-5" />
+                                <span>Import from File</span>
+                                <input type="file" className="hidden" accept=".json" onChange={onImport} />
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
 

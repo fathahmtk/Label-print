@@ -9,6 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:wght@400;500;600;700;900&family=Noto+Kufi+Arabic:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Barcode & QR Code Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
     <style>
       body {
         font-family: 'Montserrat', sans-serif;
@@ -24,10 +29,44 @@
         font-family: 'Noto Kufi Arabic', sans-serif;
       }
       
-      .template-element.selected {
-        outline: 2px solid #4f46e5;
-        z-index: 50 !important; /* Ensure selected is always on top for interaction */
+      .selection-box {
+        position: absolute;
+        border: 2px solid #4f46e5;
+        pointer-events: none;
+        z-index: 50;
       }
+      
+      .resizer, .rotator {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: white;
+        border: 1px solid #4f46e5;
+        border-radius: 50%;
+        pointer-events: all;
+      }
+      
+      .resizer.tl { top: -5px; left: -5px; cursor: nwse-resize; }
+      .resizer.tr { top: -5px; right: -5px; cursor: nesw-resize; }
+      .resizer.bl { bottom: -5px; left: -5px; cursor: nesw-resize; }
+      .resizer.br { bottom: -5px; right: -5px; cursor: nwse-resize; }
+
+      .rotator {
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        cursor: grab;
+      }
+
+      .rotation-line {
+        position: absolute;
+        bottom: 5px;
+        left: 50%;
+        width: 1px;
+        height: 15px;
+        background: #4f46e5;
+      }
+
       .template-element:not(.selected):hover {
         outline: 1px dashed #a5b4fc;
       }
@@ -76,6 +115,33 @@
       .accordion-content > div {
         overflow: hidden;
       }
+      
+      /* Tooltip */
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+      .tooltip .tooltip-text {
+        visibility: hidden;
+        width: max-content;
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 10px;
+        position: absolute;
+        z-index: 100;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+        font-size: 0.75rem;
+      }
+      .tooltip:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+      }
 
 
       @media print {
@@ -90,17 +156,14 @@
           background-image: none;
         }
         
-        /* Hide everything by default in print mode */
         body * {
           visibility: hidden;
         }
         
-        /* But reveal the designated print area */
         #print-area, #print-area * {
           visibility: visible;
         }
         
-        /* Position the print area to fill the page */
         #print-area {
           position: absolute;
           left: 0;
@@ -146,8 +209,8 @@
 
 
         .label-copy {
-            page-break-inside: avoid; /* Prevent labels from splitting across pages */
-            border: 1px dashed #cccccc; /* Add a cutting guide */
+            page-break-inside: avoid;
+            border: 1px dashed #cccccc;
             overflow: hidden;
         }
 

@@ -118,6 +118,60 @@ const App: React.FC = () => {
         }
     });
   };
+  
+    // --- Data Import/Export ---
+    const handleExport = () => {
+        const dataToExport = {
+            presets: presets,
+            templates: templates,
+        };
+        const dataStr = JSON.stringify(dataToExport, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `hot-bake-backup-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        addToast('Data exported successfully!');
+    };
+
+    const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target?.result as string);
+                    if (importedData.presets && Array.isArray(importedData.presets) &&
+                        importedData.templates && Array.isArray(importedData.templates)) {
+                        
+                        setConfirmation({
+                            title: 'Import Data',
+                            message: 'This will overwrite all current products and templates. Are you sure you want to continue?',
+                            onConfirm: () => {
+                                setPresets(importedData.presets);
+                                setTemplates(importedData.templates);
+                                addToast('Data imported successfully!');
+                                setConfirmation(null);
+                            }
+                        });
+
+                    } else {
+                        addToast('Invalid import file format.', 'error');
+                    }
+                } catch (error) {
+                    addToast('Failed to read or parse the import file.', 'error');
+                    console.error("Import error:", error);
+                }
+            };
+            reader.readAsText(file);
+        }
+         // Reset file input to allow re-uploading the same file
+        event.target.value = '';
+    };
 
   // --- Navigation ---
   const navigateToDesigner = (id: string | null) => {
@@ -133,7 +187,7 @@ const App: React.FC = () => {
 
     switch (page) {
       case 'dashboard':
-        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} />;
+        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} onExport={handleExport} onImport={handleImport} />;
       case 'print':
         return <PrintPage {...commonProps} />;
       case 'config':
@@ -144,7 +198,7 @@ const App: React.FC = () => {
         const editingTemplate = templates.find(t => t.id === editingTemplateId) || null;
         return <TemplateDesignerPage template={editingTemplate} onSave={handleSaveTemplate} onCancel={() => setPage('templates')} />;
       default:
-        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} />;
+        return <DashboardPage {...commonProps} setPage={setPage} onEditTemplate={navigateToDesigner} onExport={handleExport} onImport={handleImport}/>;
     }
   };
 

@@ -41,6 +41,7 @@ export interface LayoutElement {
   y: number; // percentage
   width: number; // percentage
   height: number; // percentage
+  rotation?: number; // degrees
   zIndex?: number;
   
   // Text-specific properties

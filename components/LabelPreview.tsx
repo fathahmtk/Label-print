@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import type { LabelData, LabelTemplate, LayoutElement, DataBindingKey } from '../types';
-import { BarcodeIcon, QrCodeIcon } from './icons';
+
+declare const JsBarcode: any;
+declare const QRCode: any;
 
 interface LabelPreviewProps {
   data: LabelData;
@@ -13,7 +15,48 @@ const getBoundValue = (data: LabelData, binding: DataBindingKey): string => {
   return data[binding] || '';
 };
 
-const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ data, template }) => {
+const BarcodeElement: React.FC<{ sku: string }> = ({ sku }) => {
+    const ref = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        if (ref.current && sku) {
+            try {
+                JsBarcode(ref.current, sku, {
+                    format: 'CODE128',
+                    displayValue: true,
+                    fontSize: 14,
+                    margin: 0,
+                    height: 50,
+                });
+            } catch (e) {
+                console.error("JsBarcode error:", e);
+                 // Fallback to show error on canvas
+                const ctx = ref.current.getContext('2d');
+                if (ctx) {
+                    ctx.clearRect(0, 0, ref.current.width, ref.current.height);
+                    ctx.fillStyle = 'red';
+                    ctx.font = '10px Arial';
+                    ctx.fillText('Invalid Barcode Data', 2, 10);
+                }
+            }
+        }
+    }, [sku]);
+    return <canvas ref={ref} className="w-full h-full object-contain" />;
+};
+
+const QrCodeElement: React.FC<{ sku: string }> = ({ sku }) => {
+    const ref = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        if (ref.current && sku) {
+             QRCode.toCanvas(ref.current, sku, { errorCorrectionLevel: 'H', margin: 1, width: 200 }, (error: any) => {
+                if (error) console.error("QRCode error:", error);
+            });
+        }
+    }, [sku]);
+    return <canvas ref={ref} className="w-full h-full object-contain" />;
+};
+
+
+const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = React.memo(({ data, template }) => {
   const renderElement = (element: LayoutElement) => {
     const isArabic = element.fontFamily === 'Noto Kufi Arabic' || element.dataBinding?.endsWith('_ar');
     const style: React.CSSProperties = {
@@ -30,6 +73,7 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
       letterSpacing: element.tracking,
       textTransform: element.isUppercase ? 'uppercase' : 'none',
       direction: element.direction || (isArabic ? 'rtl' : 'ltr'),
+      transform: `rotate(${element.rotation || 0}deg)`,
     };
     
     const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');
@@ -42,7 +86,7 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
               <img src={data.logo} alt="Brand Logo" className="max-w-full max-h-full object-contain" />
             ) : (
                <div className="w-full h-full bg-stone-100 flex items-center justify-center text-stone-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-1/2 w-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <svg xmlns="http://www.w.org/2000/svg" className="h-1/2 w-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                </div>
             )}
           </div>
@@ -55,15 +99,14 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
          );
       case 'barcode':
         return (
-             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 text-black">
-                <BarcodeIcon className="w-full h-auto flex-grow" />
-                <span className="text-[5px] tracking-widest">{data.sku || '123456789012'}</span>
+             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 bg-white text-black">
+                <BarcodeElement sku={data.sku || 'NO-SKU'} />
             </div>
         )
       case 'qrcode':
           return (
-             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 text-black">
-                <QrCodeIcon className="w-auto h-full" />
+             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 bg-white text-black">
+                <QrCodeElement sku={data.sku || 'NO-SKU'} />
             </div>
         )
       case 'text':
@@ -84,6 +127,8 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
     }
   };
 
+  const sortedElements = template.elements.slice().sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+
   return (
     <div 
         className="w-full h-full bg-white text-black relative"
@@ -91,10 +136,10 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
             aspectRatio: `${template.widthMm} / ${template.heightMm}`,
         }}
     >
-      {template.elements.map(renderElement)}
+      {sortedElements.map(renderElement)}
     </div>
   );
-};
+});
 
 
 const LabelPreview: React.FC<LabelPreviewProps> = ({ data, template, labelCount, printDensity }) => {
