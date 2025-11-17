@@ -20,6 +20,7 @@ export interface LabelData {
   disclaimer_ar: string;
   productionDate: string;
   expiryDate: string;
+  sku: string;
   logo?: string;
 }
 
@@ -28,13 +29,14 @@ export interface PresetProduct {
   name: string;
   data: Partial<Omit<LabelData, 'logo' | 'productionDate' | 'expiryDate'>>;
   shelfLifeDays: number;
+  lastModified?: string;
 }
 
 export type DataBindingKey = keyof Omit<LabelData, 'logo'>;
 
 export interface LayoutElement {
   id: string;
-  type: 'text' | 'logo' | 'line';
+  type: 'text' | 'logo' | 'line' | 'barcode' | 'qrcode';
   x: number; // percentage
   y: number; // percentage
   width: number; // percentage
@@ -55,6 +57,9 @@ export interface LayoutElement {
   // Line-specific properties
   strokeWidth?: number;
   strokeColor?: string;
+
+  // Barcode/QR Code specific properties
+  codeDataBinding?: 'sku'; // for now, only SKU
 }
 
 export interface LabelTemplate {
@@ -63,4 +68,11 @@ export interface LabelTemplate {
   widthMm: number;
   heightMm: number;
   elements: LayoutElement[];
+  lastModified?: string;
+}
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: 'success' | 'error';
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { LabelTemplate, LayoutElement, DataBindingKey } from '../types';
 import { initialLabelData } from '../data/presets';
+import { BarcodeIcon, QrCodeIcon } from '../components/icons';
 
 interface TemplateDesignerPageProps {
   template: LabelTemplate | null;
@@ -28,6 +29,7 @@ const dataBindings: { key: DataBindingKey; label: string }[] = [
     { key: 'disclaimer_ar', label: 'Disclaimer (AR)' },
     { key: 'productionDate', label: 'Production Date' },
     { key: 'expiryDate', label: 'Expiry Date' },
+    { key: 'sku', label: 'SKU' },
 ];
 
 const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, onSave, onCancel }) => {
@@ -71,11 +73,11 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
     document.addEventListener('mouseup', onMouseUp);
   };
   
-  const addElement = (type: 'text' | 'logo' | 'line') => {
+  const addElement = (type: LayoutElement['type']) => {
     const newElement: LayoutElement = {
         id: crypto.randomUUID(),
         type,
-        x: 10, y: 10, width: type === 'line' ? 30 : 25, height: type === 'line' ? 0.5 : 15,
+        x: 10, y: 10, width: type === 'line' ? 30 : (type === 'qrcode' ? 20 : 25), height: type === 'line' ? 0.5 : (type === 'qrcode' ? 20 : 15),
         ...(type === 'text' && {
             content: 'New Text',
             fontSize: 8,
@@ -86,6 +88,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             color: '#000000',
         }),
          ...(type === 'line' && { strokeWidth: 1, strokeColor: '#000000' }),
+         ...((type === 'barcode' || type === 'qrcode') && { codeDataBinding: 'sku' }),
     };
     setEditedTemplate(prev => ({...prev, elements: [...prev.elements, newElement]}));
     setSelectedElementId(newElement.id);
@@ -143,6 +146,8 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
               >
                  { el.type === 'logo' && <div className="w-full h-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400">LOGO</div> }
                  { el.type === 'line' && <div className="w-full h-full flex items-center"><div style={{width: '100%', height: `${el.strokeWidth}px`, backgroundColor: el.strokeColor}} /></div>}
+                 { el.type === 'barcode' && <div className="w-full h-full flex flex-col items-center justify-center p-1 text-black"><BarcodeIcon className="w-full h-auto flex-grow" /><span className="text-[5px] tracking-widest">{`{${el.codeDataBinding}}`}</span></div> }
+                 { el.type === 'qrcode' && <div className="w-full h-full flex items-center justify-center p-1 text-black"><QrCodeIcon className="w-auto h-full" /></div> }
                  { el.type === 'text' && <div className="w-full h-full overflow-hidden break-words whitespace-pre-wrap">{el.dataBinding ? `{${el.dataBinding}}` : el.content}</div> }
               </div>
             ))}
@@ -157,7 +162,9 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             <div className="flex gap-1">
                 <button onClick={() => addElement('text')} className="p-2 rounded-md hover:bg-stone-100" title="Add Text"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h.97l.26-1.755a1 1 0 111.94.286L12.47 6h.97l.26-1.755a1 1 0 111.94.286L15.47 6H16a1 1 0 110 2h-1.03l-.26 1.755a1 1 0 11-1.94-.286L12.97 8h-.97l-.26 1.755a1 1 0 11-1.94-.286L9.97 8h-.97l-.26 1.755a1 1 0 01-1.94-.286L6.53 8H4a1 1 0 110 2h1.03l.26-1.755a1 1 0 011.94-.286L7.53 6h.97l.26-1.755a1 1 0 011.213-.727zM9.03 8l.26-1.755A1 1 0 0110.47 6h.97l.26 1.755A1 1 0 0110.53 8h-.97l-.26-1.755a1 1 0 01-.214-.475H9.03z" clipRule="evenodd" /></svg></button>
                 <button onClick={() => addElement('logo')} className="p-2 rounded-md hover:bg-stone-100" title="Add Logo"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg></button>
-                 <button onClick={() => addElement('line')} className="p-2 rounded-md hover:bg-stone-100" title="Add Line"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg></button>
+                <button onClick={() => addElement('line')} className="p-2 rounded-md hover:bg-stone-100" title="Add Line"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg></button>
+                <button onClick={() => addElement('barcode')} className="p-2 rounded-md hover:bg-stone-100" title="Add Barcode"><BarcodeIcon className="h-5 w-5" /></button>
+                <button onClick={() => addElement('qrcode')} className="p-2 rounded-md hover:bg-stone-100" title="Add QR Code"><QrCodeIcon className="h-5 w-5" /></button>
             </div>
         </div>
         <div className="flex-grow overflow-y-auto pt-4 pr-2 -mr-2 text-sm space-y-4">

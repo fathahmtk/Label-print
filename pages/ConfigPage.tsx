@@ -4,12 +4,13 @@ import PresetEditor from '../components/PresetEditor';
 
 interface ConfigPageProps {
     presets: PresetProduct[];
-    onAdd: (newPresetData: Omit<PresetProduct, 'id'>) => void;
+    onAdd: (newPresetData: Omit<PresetProduct, 'id' | 'lastModified'>) => void;
     onUpdate: (updatedPreset: PresetProduct) => void;
     onDelete: (id: string) => void;
+    addToast: (message: string, type?: 'success' | 'error') => void;
 }
 
-const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDelete }) => {
+const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDelete, addToast }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingPreset, setEditingPreset] = useState<PresetProduct | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +25,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDel
         setIsModalOpen(true);
     };
 
-    const handleSave = (presetData: Omit<PresetProduct, 'id'> | PresetProduct) => {
+    const handleSave = (presetData: Omit<PresetProduct, 'id' | 'lastModified'> | PresetProduct) => {
         if ('id' in presetData) {
             onUpdate(presetData);
         } else {
@@ -111,6 +112,7 @@ const ConfigPage: React.FC<ConfigPageProps> = ({ presets, onAdd, onUpdate, onDel
                     preset={editingPreset}
                     onSave={handleSave}
                     onClose={() => setIsModalOpen(false)}
+                    addToast={addToast}
                 />
             )}
         </div>

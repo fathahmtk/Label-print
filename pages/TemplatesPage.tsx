@@ -1,5 +1,7 @@
 import React from 'react';
 import type { LabelTemplate } from '../types';
+import LabelPreview from '../components/LabelPreview'; // To be used for thumbnail
+import { initialLabelData } from '../data/presets';
 
 interface TemplatesPageProps {
   templates: LabelTemplate[];
@@ -29,10 +31,12 @@ const TemplatesPage: React.FC<TemplatesPageProps> = ({ templates, onAddNew, onEd
           {templates.map(template => (
             <div key={template.id} className="group relative bg-stone-50 rounded-lg p-4 flex flex-col border border-stone-200 hover:shadow-lg hover:border-stone-300 transition-all">
                 <div 
-                    className="w-full bg-white border rounded-md mb-4 shadow-inner"
+                    className="w-full bg-white border rounded-md mb-4 shadow-inner overflow-hidden"
                     style={{ aspectRatio: `${template.widthMm} / ${template.heightMm}`}}
                 >
-                    {/* Thumbnail preview can be added here */}
+                    <div className="transform scale-[0.1] origin-top-left" style={{width: '1000%', height: '1000%'}}>
+                       <LabelPreview data={initialLabelData} template={template} labelCount={1} printDensity="normal" />
+                    </div>
                 </div>
                 <h3 className="font-bold text-md text-stone-800 flex-grow">{template.name}</h3>
                 <p className="text-xs text-stone-500">{template.widthMm}mm x {template.heightMm}mm</p>

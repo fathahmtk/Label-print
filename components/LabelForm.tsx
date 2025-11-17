@@ -72,7 +72,13 @@ const LabelForm: React.FC<LabelFormProps> = ({
               <label htmlFor="brandName" className="block text-sm font-medium text-stone-600">Brand Name</label>
               <input type="text" id="brandName" name="brandName" value={data.brandName} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
             </div>
-             <div>
+            <div>
+              <label htmlFor="sku" className="block text-sm font-medium text-stone-600">SKU / Barcode</label>
+              <input type="text" id="sku" name="sku" value={data.sku} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
+            </div>
+          </div>
+
+          <div>
               <label className="block text-sm font-medium text-stone-600">Brand Logo</label>
               <div className="mt-1 flex items-center space-x-4">
                 <input
@@ -103,7 +109,6 @@ const LabelForm: React.FC<LabelFormProps> = ({
                   </label>
                 )}
               </div>
-            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

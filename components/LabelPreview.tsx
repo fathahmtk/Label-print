@@ -1,5 +1,6 @@
 import React from 'react';
 import type { LabelData, LabelTemplate, LayoutElement, DataBindingKey } from '../types';
+import { BarcodeIcon, QrCodeIcon } from './icons';
 
 interface LabelPreviewProps {
   data: LabelData;
@@ -29,6 +30,8 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
       textTransform: element.isUppercase ? 'uppercase' : 'none',
       direction: element.dataBinding?.endsWith('_ar') ? 'rtl' : 'ltr',
     };
+    
+    const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');
 
     switch (element.type) {
       case 'logo':
@@ -48,10 +51,22 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
           <div key={element.id} style={style} className="flex items-center justify-center">
              <div style={{ width: '100%', height: `${element.strokeWidth}px`, backgroundColor: element.strokeColor }} />
           </div>
-         )
+         );
+      case 'barcode':
+        return (
+             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 text-black">
+                <BarcodeIcon className="w-full h-auto flex-grow" />
+                <span className="text-[5px] tracking-widest">{data.sku || '123456789012'}</span>
+            </div>
+        )
+      case 'qrcode':
+          return (
+             <div key={element.id} style={style} className="flex flex-col items-center justify-center p-1 text-black">
+                <QrCodeIcon className="w-auto h-full" />
+            </div>
+        )
       case 'text':
       default:
-        const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');
         const getVAlignClass = (vAlign: LayoutElement['verticalAlign']) => {
             switch (vAlign) {
                 case 'top': return 'items-start';

@@ -1,0 +1,46 @@
+import React from 'react';
+
+type IconProps = {
+  className?: string;
+};
+
+export const TranslateIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+    <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
+  </svg>
+);
+
+export const SparklesIcon: React.FC<IconProps> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M5 2a1 1 0 011 1v1h1a1 1 0 010 2H6v1a1 1 0 01-2 0V6H3a1 1 0 010-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 2a1 1 0 01.967.744L14.146 7.2 17.256 9a1 1 0 010 1.8l-3.11 1.054-1.178 4.455a1 1 0 01-1.933 0L9.854 11.854 6.744 10.8a1 1 0 010-1.8l3.11-1.054L11.033 2.744A1 1 0 0112 2z" clipRule="evenodd" />
+  </svg>
+);
+
+export const BarcodeIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 100 50" preserveAspectRatio="none" fill="currentColor">
+        <path d="M0 0 H5 V50 H0 z" />
+        <path d="M8 0 H10 V50 H8 z" />
+        <path d="M13 0 H14 V50 H13 z" />
+        <path d="M17 0 H21 V50 H17 z" />
+        <path d="M23 0 H24 V50 H23 z" />
+        <path d="M27 0 H30 V50 H27 z" />
+        <path d="M34 0 H35 V50 H34 z" />
+        <path d="M38 0 H39 V50 H38 z" />
+        <path d="M42 0 H46 V50 H42 z" />
+        <path d="M50 0 H51 V50 H50 z" />
+        <path d="M54 0 H55 V50 H54 z" />
+        <path d="M58 0 H62 V50 H58 z" />
+        <path d="M65 0 H67 V50 H65 z" />
+        <path d="M70 0 H71 V50 H70 z" />
+        <path d="M74 0 H78 V50 H74 z" />
+        <path d="M82 0 H84 V50 H82 z" />
+        <path d="M88 0 H90 V50 H88 z" />
+        <path d="M94 0 H100 V50 H94 z" />
+    </svg>
+);
+
+export const QrCodeIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 33 33" fill="currentColor" shapeRendering="crispEdges">
+        <path d="M0 0h7v7H0z M1 1h5v5H1z M2 2h3v3H2z M0 26h7v7H0z M1 27h5v5H1z M2 28h3v3H2z M26 0h7v7h-7z M27 1h5v5h-5z M28 2h3v3h-3z M9 9h1v1H9z M11 9h1v1h-1z M13 9h1v1h-1z M15 9h1v1h-1z M17 9h1v1h-1z M19 9h1v1h-1z M21 9h1v1h-1z M9 11h1v1H9z M11 11h3v3h-3z M15 11h1v1h-1z M17 11h3v3h-3z M21 11h1v1h-1z M9 13h1v1H9z M15 13h1v1h-1z M21 13h1v1h-1z M9 15h1v1H9z M11 15h1v1h-1z M13 15h3v3h-3z M17 15h1v1h-1z M19 15h1v1h-1z M21 15h1v1h-1z M9 17h3v3h-3z M13 17h1v1h-1z M17 17h1v1h-1z M19 17h3v3h-3z M9 19h1v1H9z M11 19h1v1h-1z M15 19h3v3h-3z M19 19h1v1h-1z M9 21h1v1H9z M11 21h3v3h-3z M15 21h1v1h-1z M17 21h3v3h-3z M21 21h1v1h-1z"/>
+    </svg>
+);

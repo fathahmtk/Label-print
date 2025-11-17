@@ -27,6 +27,22 @@
       .template-element:not(.selected):hover {
         outline: 1px dashed #a5b4fc;
       }
+      
+      /* Toast Animation */
+      @keyframes toast-in {
+        from {
+          transform: translateY(100%) scale(0.9);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+      .toast {
+        animation: toast-in 0.3s ease-out forwards;
+      }
+
 
       @media print {
         @page {
