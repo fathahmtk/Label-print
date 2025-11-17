@@ -82,6 +82,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             fontFamily: 'Montserrat',
             fontWeight: '400',
             textAlign: 'left',
+            verticalAlign: 'middle',
             color: '#000000',
         }),
          ...(type === 'line' && { strokeWidth: 1, strokeColor: '#000000' }),
@@ -91,6 +92,16 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
   }
 
   const selectedElement = editedTemplate.elements.find(el => el.id === selectedElementId);
+
+  const getAlignmentClasses = (el: LayoutElement) => {
+      if (el.type !== 'text') return '';
+      const vAlign = {
+          top: 'items-start',
+          middle: 'items-center',
+          bottom: 'items-end'
+      };
+      return `flex ${vAlign[el.verticalAlign || 'middle']}`;
+  };
   
   return (
     <div className="flex gap-6 h-[calc(100vh-10rem)]">
@@ -120,7 +131,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             {editedTemplate.elements.map(el => (
               <div
                 key={el.id}
-                className={`template-element absolute cursor-move ${selectedElementId === el.id ? 'selected' : ''} ${el.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''}`}
+                className={`template-element absolute cursor-move ${selectedElementId === el.id ? 'selected' : ''} ${el.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''} ${getAlignmentClasses(el)}`}
                 style={{
                   left: `${el.x}%`, top: `${el.y}%`,
                   width: `${el.width}%`, height: `${el.height}%`,
@@ -144,7 +155,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
         <div className="flex items-center justify-between pb-4 border-b">
             <h3 className="text-lg font-bold text-stone-700">Properties</h3>
             <div className="flex gap-1">
-                <button onClick={() => addElement('text')} className="p-2 rounded-md hover:bg-stone-100" title="Add Text"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h.97l.26-1.755a1 1 0 111.94.286L12.47 6h.97l.26-1.755a1 1 0 111.94.286L15.47 6H16a1 1 0 110 2h-1.03l-.26 1.755a1 1 0 11-1.94-.286L12.97 8h-.97l-.26 1.755a1 1 0 11-1.94-.286L9.97 8h-.97l-.26 1.755a1 1 0 01-1.94-.286L6.53 8H4a1 1 0 110-2h1.03l.26-1.755a1 1 0 011.94-.286L7.53 6h.97l.26-1.755a1 1 0 011.213-.727zM9.03 8l.26-1.755A1 1 0 0110.47 6h.97l.26 1.755A1 1 0 0110.53 8h-.97l-.26-1.755a1 1 0 01-.214-.475H9.03z" clipRule="evenodd" /></svg></button>
+                <button onClick={() => addElement('text')} className="p-2 rounded-md hover:bg-stone-100" title="Add Text"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h.97l.26-1.755a1 1 0 111.94.286L12.47 6h.97l.26-1.755a1 1 0 111.94.286L15.47 6H16a1 1 0 110 2h-1.03l-.26 1.755a1 1 0 11-1.94-.286L12.97 8h-.97l-.26 1.755a1 1 0 11-1.94-.286L9.97 8h-.97l-.26 1.755a1 1 0 01-1.94-.286L6.53 8H4a1 1 0 110 2h1.03l.26-1.755a1 1 0 011.94-.286L7.53 6h.97l.26-1.755a1 1 0 011.213-.727zM9.03 8l.26-1.755A1 1 0 0110.47 6h.97l.26 1.755A1 1 0 0110.53 8h-.97l-.26-1.755a1 1 0 01-.214-.475H9.03z" clipRule="evenodd" /></svg></button>
                 <button onClick={() => addElement('logo')} className="p-2 rounded-md hover:bg-stone-100" title="Add Logo"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg></button>
                  <button onClick={() => addElement('line')} className="p-2 rounded-md hover:bg-stone-100" title="Add Line"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" /></svg></button>
             </div>
@@ -153,10 +164,10 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
           {selectedElement ? (
             <>
               <div className="grid grid-cols-2 gap-2">
-                 <div><label>W</label><input type="number" value={Math.round(selectedElement.width)} onChange={e => updateElement(selectedElementId!, {width: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>H</label><input type="number" value={Math.round(selectedElement.height)} onChange={e => updateElement(selectedElementId!, {height: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>X</label><input type="number" value={Math.round(selectedElement.x)} onChange={e => updateElement(selectedElementId!, {x: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>Y</label><input type="number" value={Math.round(selectedElement.y)} onChange={e => updateElement(selectedElementId!, {y: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                 <div><label>W (%)</label><input type="number" value={Math.round(selectedElement.width)} onChange={e => updateElement(selectedElementId!, {width: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                 <div><label>H (%)</label><input type="number" value={Math.round(selectedElement.height)} onChange={e => updateElement(selectedElementId!, {height: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                 <div><label>X (%)</label><input type="number" value={Math.round(selectedElement.x)} onChange={e => updateElement(selectedElementId!, {x: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                 <div><label>Y (%)</label><input type="number" value={Math.round(selectedElement.y)} onChange={e => updateElement(selectedElementId!, {y: +e.target.value})} className="w-full p-1 border rounded"/></div>
               </div>
 
              {selectedElement.type === 'text' && (
@@ -183,14 +194,17 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                         </div>
                     </div>
                      <div>
-                        <label>Style</label>
-                        <div className="grid grid-cols-3 gap-2">
+                        <label>Style & Alignment</label>
+                        <div className="grid grid-cols-2 gap-2">
                            <select value={selectedElement.fontWeight} onChange={e => updateElement(selectedElementId!, {fontWeight: e.target.value as any})} className="p-1 border rounded">
                              <option value="400">Regular</option><option value="700">Bold</option><option value="900">Black</option>
                            </select>
-                           <input type="color" value={selectedElement.color} onChange={e => updateElement(selectedElementId!, {color: e.target.value})} className="p-1 border rounded w-full"/>
+                           <input type="color" value={selectedElement.color || '#000000'} onChange={e => updateElement(selectedElementId!, {color: e.target.value})} className="p-1 border rounded w-full"/>
                            <select value={selectedElement.textAlign} onChange={e => updateElement(selectedElementId!, {textAlign: e.target.value as any})} className="p-1 border rounded">
                              <option value="left">Left</option><option value="center">Center</option><option value="right">Right</option>
+                           </select>
+                           <select value={selectedElement.verticalAlign || 'middle'} onChange={e => updateElement(selectedElementId!, {verticalAlign: e.target.value as any})} className="p-1 border rounded">
+                             <option value="top">Top</option><option value="middle">Middle</option><option value="bottom">Bottom</option>
                            </select>
                         </div>
                     </div>

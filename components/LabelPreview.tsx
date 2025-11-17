@@ -52,8 +52,16 @@ const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ 
       case 'text':
       default:
         const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');
+        const getVAlignClass = (vAlign: LayoutElement['verticalAlign']) => {
+            switch (vAlign) {
+                case 'top': return 'items-start';
+                case 'bottom': return 'items-end';
+                case 'middle':
+                default: return 'items-center';
+            }
+        };
         return (
-          <div key={element.id} style={style} className={`flex items-center break-words whitespace-pre-wrap ${element.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''}`}>
+          <div key={element.id} style={style} className={`flex ${getVAlignClass(element.verticalAlign)} break-words whitespace-pre-wrap ${element.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''}`}>
             <p className="w-full">{content}</p>
           </div>
         );
