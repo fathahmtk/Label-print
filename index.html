@@ -17,25 +17,49 @@
         font-family: 'Dancing Script', cursive;
       }
       @media print {
+        @page {
+          size: A4;
+          margin: 1cm;
+        }
+
+        body {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+        
+        /* Hide everything by default in print mode */
         body * {
           visibility: hidden;
         }
-        #label-preview, #label-preview * {
+        
+        /* But reveal the designated print area */
+        #print-area, #print-area * {
           visibility: visible;
         }
-        #label-preview {
+        
+        /* Position the print area to fill the page */
+        #print-area {
           position: absolute;
           left: 0;
           top: 0;
           width: 100%;
-          height: auto;
-          margin: 0;
-          padding: 0;
-          border: none;
-          box-shadow: none;
+          font-size: 8pt; /* Scale down fonts for smaller labels */
         }
+        
+        .print-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5cm;
+        }
+
+        .label-copy {
+            page-break-inside: avoid; /* Prevent labels from splitting across pages */
+            border: 1px dashed #cccccc; /* Add a cutting guide */
+            overflow: hidden;
+        }
+
         .no-print {
-          display: none;
+          display: none !important;
         }
       }
     </style>
