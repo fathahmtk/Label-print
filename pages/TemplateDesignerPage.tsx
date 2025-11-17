@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { LabelTemplate, LayoutElement, DataBindingKey } from '../types';
 import { initialLabelData } from '../data/presets';
-import { BarcodeIcon, QrCodeIcon } from '../components/icons';
+import { BarcodeIcon, QrCodeIcon, BringForwardIcon, SendBackwardIcon, BinIcon } from '../components/icons';
 
 interface TemplateDesignerPageProps {
   template: LabelTemplate | null;
@@ -32,6 +32,19 @@ const dataBindings: { key: DataBindingKey; label: string }[] = [
     { key: 'sku', label: 'SKU' },
 ];
 
+const Accordion: React.FC<{ title: string; children: React.ReactNode, isOpen: boolean, onToggle: () => void }> = ({ title, children, isOpen, onToggle }) => (
+    <div className="border-b">
+        <button onClick={onToggle} className="w-full flex justify-between items-center py-2 text-left font-semibold">
+            {title}
+            <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" /></svg>
+        </button>
+        <div className={`grid accordion-content ${isOpen ? 'open' : ''}`}>
+           <div className="pt-2 pb-4 space-y-4">{children}</div>
+        </div>
+    </div>
+);
+
+
 const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, onSave, onCancel }) => {
   const [editedTemplate, setEditedTemplate] = useState<LabelTemplate>(() => 
     template || {
@@ -43,7 +56,22 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
     }
   );
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState({ pos: true, content: true, style: true });
   const canvasRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+     if(pageRef.current) pageRef.current.focus();
+     
+     const handleKeyDown = (e: KeyboardEvent) => {
+         if (e.key === 'Escape') onCancel();
+         if (e.key === 'Delete' && selectedElementId) {
+             handleDeleteElement(selectedElementId);
+         }
+     };
+     window.addEventListener('keydown', handleKeyDown);
+     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElementId, onCancel]);
 
   const updateElement = (id: string, updates: Partial<LayoutElement>) => {
     setEditedTemplate(prev => ({
@@ -51,33 +79,14 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
       elements: prev.elements.map(el => el.id === id ? { ...el, ...updates } : el),
     }));
   };
-  
-  const handleDrag = (e: React.MouseEvent, element: LayoutElement) => {
-    if (!canvasRef.current) return;
-    const canvasRect = canvasRef.current.getBoundingClientRect();
-    const startX = e.clientX;
-    const startY = e.clientY;
-    
-    const onMouseMove = (moveE: MouseEvent) => {
-        const dx = (moveE.clientX - startX) / canvasRect.width * 100;
-        const dy = (moveE.clientY - startY) / canvasRect.height * 100;
-        updateElement(element.id, { x: element.x + dx, y: element.y + dy });
-    };
 
-    const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  };
-  
   const addElement = (type: LayoutElement['type']) => {
+    const newZIndex = (Math.max(0, ...editedTemplate.elements.map(el => el.zIndex || 0))) + 1;
     const newElement: LayoutElement = {
         id: crypto.randomUUID(),
         type,
         x: 10, y: 10, width: type === 'line' ? 30 : (type === 'qrcode' ? 20 : 25), height: type === 'line' ? 0.5 : (type === 'qrcode' ? 20 : 15),
+        zIndex: newZIndex,
         ...(type === 'text' && {
             content: 'New Text',
             fontSize: 8,
@@ -93,21 +102,41 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
     setEditedTemplate(prev => ({...prev, elements: [...prev.elements, newElement]}));
     setSelectedElementId(newElement.id);
   }
+  
+  const handleDeleteElement = (id: string) => {
+      setEditedTemplate(prev => ({...prev, elements: prev.elements.filter(el => el.id !== id)}));
+      setSelectedElementId(null);
+  };
+  
+  const handleReorderElement = (id: string, direction: 'forward' | 'backward') => {
+      const currentZ = editedTemplate.elements.find(el => el.id === id)?.zIndex || 0;
+      const otherZIndexes = editedTemplate.elements
+        .filter(el => el.id !== id)
+        .map(el => el.zIndex || 0)
+        .sort((a,b) => a-b);
+      
+      let newZ;
+      if (direction === 'forward') {
+          const nextHighestZ = otherZIndexes.find(z => z > currentZ);
+          newZ = nextHighestZ !== undefined ? nextHighestZ + 1 : currentZ + 1;
+      } else { // backward
+          const nextLowestZ = [...otherZIndexes].reverse().find(z => z < currentZ);
+          newZ = nextLowestZ !== undefined ? nextLowestZ - 1 : currentZ - 1;
+      }
+      updateElement(id, { zIndex: newZ });
+  };
 
   const selectedElement = editedTemplate.elements.find(el => el.id === selectedElementId);
+  const sortedElements = editedTemplate.elements.slice().sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
   const getAlignmentClasses = (el: LayoutElement) => {
-      if (el.type !== 'text') return '';
-      const vAlign = {
-          top: 'items-start',
-          middle: 'items-center',
-          bottom: 'items-end'
-      };
+      if (el.type !== 'text') return 'flex items-center justify-center';
+      const vAlign = { top: 'items-start', middle: 'items-center', bottom: 'items-end' };
       return `flex ${vAlign[el.verticalAlign || 'middle']}`;
   };
   
   return (
-    <div className="flex gap-6 h-[calc(100vh-10rem)]">
+    <div ref={pageRef} tabIndex={-1} className="flex gap-6 h-[calc(100vh-10rem)] outline-none">
       {/* Canvas */}
       <div className="flex-grow bg-white p-6 rounded-lg shadow-lg flex flex-col">
         <div className="flex justify-between items-center mb-4">
@@ -131,7 +160,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
             style={{ width: '100%', aspectRatio: `${editedTemplate.widthMm} / ${editedTemplate.heightMm}` }}
             onClick={(e) => { if(e.target === canvasRef.current) setSelectedElementId(null) }}
           >
-            {editedTemplate.elements.map(el => (
+            {sortedElements.map(el => (
               <div
                 key={el.id}
                 className={`template-element absolute cursor-move ${selectedElementId === el.id ? 'selected' : ''} ${el.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''} ${getAlignmentClasses(el)}`}
@@ -141,8 +170,9 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                   color: el.color, fontFamily: el.fontFamily, fontSize: `${el.fontSize}px`, fontWeight: el.fontWeight,
                   textAlign: el.textAlign, textTransform: el.isUppercase ? 'uppercase' : 'none', letterSpacing: el.tracking,
                   direction: el.dataBinding?.endsWith('_ar') ? 'rtl' : 'ltr',
+                  zIndex: el.zIndex,
                 }}
-                onMouseDown={(e) => { e.stopPropagation(); setSelectedElementId(el.id); handleDrag(e, el); }}
+                onClick={(e) => { e.stopPropagation(); setSelectedElementId(el.id); }}
               >
                  { el.type === 'logo' && <div className="w-full h-full border-2 border-dashed border-stone-300 flex items-center justify-center text-stone-400">LOGO</div> }
                  { el.type === 'line' && <div className="w-full h-full flex items-center"><div style={{width: '100%', height: `${el.strokeWidth}px`, backgroundColor: el.strokeColor}} /></div>}
@@ -158,7 +188,7 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
       {/* Properties Panel */}
       <div className="w-80 flex-shrink-0 bg-white p-6 rounded-lg shadow-lg flex flex-col">
         <div className="flex items-center justify-between pb-4 border-b">
-            <h3 className="text-lg font-bold text-stone-700">Properties</h3>
+            <h3 className="text-lg font-bold text-stone-700">Add Elements</h3>
             <div className="flex gap-1">
                 <button onClick={() => addElement('text')} className="p-2 rounded-md hover:bg-stone-100" title="Add Text"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.243 3.03a1 1 0 01.727 1.213L9.53 6h.97l.26-1.755a1 1 0 111.94.286L12.47 6h.97l.26-1.755a1 1 0 111.94.286L15.47 6H16a1 1 0 110 2h-1.03l-.26 1.755a1 1 0 11-1.94-.286L12.97 8h-.97l-.26 1.755a1 1 0 11-1.94-.286L9.97 8h-.97l-.26 1.755a1 1 0 01-1.94-.286L6.53 8H4a1 1 0 110 2h1.03l.26-1.755a1 1 0 011.94-.286L7.53 6h.97l.26-1.755a1 1 0 011.213-.727zM9.03 8l.26-1.755A1 1 0 0110.47 6h.97l.26 1.755A1 1 0 0110.53 8h-.97l-.26-1.755a1 1 0 01-.214-.475H9.03z" clipRule="evenodd" /></svg></button>
                 <button onClick={() => addElement('logo')} className="p-2 rounded-md hover:bg-stone-100" title="Add Logo"><svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg></button>
@@ -167,28 +197,52 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                 <button onClick={() => addElement('qrcode')} className="p-2 rounded-md hover:bg-stone-100" title="Add QR Code"><QrCodeIcon className="h-5 w-5" /></button>
             </div>
         </div>
-        <div className="flex-grow overflow-y-auto pt-4 pr-2 -mr-2 text-sm space-y-4">
+        <div className="flex-grow overflow-y-auto pt-2 pr-2 -mr-2 text-sm">
           {selectedElement ? (
             <>
-              <div className="grid grid-cols-2 gap-2">
-                 <div><label>W (%)</label><input type="number" value={Math.round(selectedElement.width)} onChange={e => updateElement(selectedElementId!, {width: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>H (%)</label><input type="number" value={Math.round(selectedElement.height)} onChange={e => updateElement(selectedElementId!, {height: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>X (%)</label><input type="number" value={Math.round(selectedElement.x)} onChange={e => updateElement(selectedElementId!, {x: +e.target.value})} className="w-full p-1 border rounded"/></div>
-                 <div><label>Y (%)</label><input type="number" value={Math.round(selectedElement.y)} onChange={e => updateElement(selectedElementId!, {y: +e.target.value})} className="w-full p-1 border rounded"/></div>
-              </div>
+              <Accordion title="Position & Size" isOpen={openSections.pos} onToggle={() => setOpenSections(s=>({...s, pos: !s.pos}))}>
+                <div className="grid grid-cols-2 gap-2">
+                   <div><label>Width (%)</label><input type="number" value={Math.round(selectedElement.width)} onChange={e => updateElement(selectedElementId!, {width: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                   <div><label>Height (%)</label><input type="number" value={Math.round(selectedElement.height)} onChange={e => updateElement(selectedElementId!, {height: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                   <div><label>X (%)</label><input type="number" value={Math.round(selectedElement.x)} onChange={e => updateElement(selectedElementId!, {x: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                   <div><label>Y (%)</label><input type="number" value={Math.round(selectedElement.y)} onChange={e => updateElement(selectedElementId!, {y: +e.target.value})} className="w-full p-1 border rounded"/></div>
+                </div>
+                 <div>
+                    <label>Layer Order</label>
+                    <div className="grid grid-cols-2 gap-2">
+                        <button onClick={() => handleReorderElement(selectedElement.id, 'backward')} className="p-2 flex items-center justify-center gap-2 border rounded hover:bg-stone-100"><SendBackwardIcon className="h-4 w-4" /> Send Back</button>
+                        <button onClick={() => handleReorderElement(selectedElement.id, 'forward')} className="p-2 flex items-center justify-center gap-2 border rounded hover:bg-stone-100"><BringForwardIcon className="h-4 w-4" /> Bring Front</button>
+                    </div>
+                 </div>
+              </Accordion>
+
+             {(selectedElement.type === 'text' || selectedElement.type === 'barcode' || selectedElement.type === 'qrcode') && (
+                 <Accordion title="Content" isOpen={openSections.content} onToggle={() => setOpenSections(s=>({...s, content: !s.content}))}>
+                    {selectedElement.type === 'text' && (
+                        <div>
+                            <label>Content Source</label>
+                            <select value={selectedElement.dataBinding || 'static'} onChange={e => updateElement(selectedElementId!, { dataBinding: e.target.value === 'static' ? undefined : e.target.value as DataBindingKey })} className="w-full p-1 border rounded">
+                                <option value="static">Static Text</option>
+                                {dataBindings.map(b => <option key={b.key} value={b.key}>{b.label}</option>)}
+                            </select>
+                            {!selectedElement.dataBinding && (
+                                 <textarea value={selectedElement.content} onChange={e => updateElement(selectedElementId!, {content: e.target.value})} className="w-full p-1 border rounded mt-1 text-xs" rows={2}/>
+                            )}
+                        </div>
+                    )}
+                    {(selectedElement.type === 'barcode' || selectedElement.type === 'qrcode') && (
+                         <div>
+                            <label>Data Source</label>
+                            <select value={selectedElement.codeDataBinding} onChange={e => updateElement(selectedElementId!, { codeDataBinding: e.target.value as 'sku' })} className="w-full p-1 border rounded">
+                                <option value="sku">Product SKU</option>
+                            </select>
+                        </div>
+                    )}
+                </Accordion>
+             )}
 
              {selectedElement.type === 'text' && (
-                <>
-                    <div>
-                        <label>Content</label>
-                        <select value={selectedElement.dataBinding || 'static'} onChange={e => updateElement(selectedElementId!, { dataBinding: e.target.value === 'static' ? undefined : e.target.value as DataBindingKey })} className="w-full p-1 border rounded">
-                            <option value="static">Static Text</option>
-                            {dataBindings.map(b => <option key={b.key} value={b.key}>{b.label}</option>)}
-                        </select>
-                        {!selectedElement.dataBinding && (
-                             <input type="text" value={selectedElement.content} onChange={e => updateElement(selectedElementId!, {content: e.target.value})} className="w-full p-1 border rounded mt-1"/>
-                        )}
-                    </div>
+                <Accordion title="Style" isOpen={openSections.style} onToggle={() => setOpenSections(s=>({...s, style: !s.style}))}>
                      <div>
                         <label>Font</label>
                         <div className="grid grid-cols-2 gap-2">
@@ -197,11 +251,11 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                                 <option value="Dancing Script">Dancing Script</option>
                                 <option value="Noto Kufi Arabic">Noto Kufi Arabic</option>
                              </select>
-                             <input type="number" value={selectedElement.fontSize} onChange={e => updateElement(selectedElementId!, {fontSize: +e.target.value})} className="w-full p-1 border rounded"/>
+                             <input type="number" placeholder="Size" value={selectedElement.fontSize} onChange={e => updateElement(selectedElementId!, {fontSize: +e.target.value})} className="w-full p-1 border rounded"/>
                         </div>
                     </div>
                      <div>
-                        <label>Style & Alignment</label>
+                        <label>Appearance & Alignment</label>
                         <div className="grid grid-cols-2 gap-2">
                            <select value={selectedElement.fontWeight} onChange={e => updateElement(selectedElementId!, {fontWeight: e.target.value as any})} className="p-1 border rounded">
                              <option value="400">Regular</option><option value="700">Bold</option><option value="900">Black</option>
@@ -218,11 +272,17 @@ const TemplateDesignerPage: React.FC<TemplateDesignerPageProps> = ({ template, o
                     <div>
                          <label className="flex items-center gap-2"><input type="checkbox" checked={!!selectedElement.isUppercase} onChange={e => updateElement(selectedElementId!, {isUppercase: e.target.checked})} /> Uppercase</label>
                     </div>
-                </>
+                </Accordion>
              )}
+              <div className="pt-4 mt-4 border-t">
+                  <button onClick={() => handleDeleteElement(selectedElement.id)} className="w-full flex items-center justify-center gap-2 p-2 text-red-600 border border-red-200 rounded-md hover:bg-red-50 hover:border-red-500">
+                      <BinIcon className="h-4 w-4" />
+                      Delete Element
+                  </button>
+              </div>
             </>
           ) : (
-            <div className="text-stone-500 text-center pt-10">Select an element to edit its properties, or add a new one.</div>
+            <div className="text-stone-500 text-center pt-10">Select an element to edit its properties.</div>
           )}
         </div>
         <div className="pt-4 border-t mt-auto flex justify-end gap-2">

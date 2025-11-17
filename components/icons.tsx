@@ -4,6 +4,14 @@ type IconProps = {
   className?: string;
 };
 
+export const LogoIcon: React.FC<IconProps> = ({ className }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z"></path>
+        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"></path>
+        <path d="M12 12v10"></path>
+    </svg>
+);
+
 export const TranslateIcon: React.FC<IconProps> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
     <path d="M5 4a1 1 0 00-2 0v7.268a2 2 0 000 3.464V16a1 1 0 102 0v-1.268a2 2 0 000-3.464V4zM11 4a1 1 0 10-2 0v1.268a2 2 0 000 3.464V16a1 1 0 102 0V8.732a2 2 0 000-3.464V4zM16 3a1 1 0 011 1v7.268a2 2 0 010 3.464V16a1 1 0 11-2 0v-1.268a2 2 0 010-3.464V4a1 1 0 011-1z" />
@@ -43,4 +51,24 @@ export const QrCodeIcon: React.FC<IconProps> = ({ className }) => (
     <svg className={className} viewBox="0 0 33 33" fill="currentColor" shapeRendering="crispEdges">
         <path d="M0 0h7v7H0z M1 1h5v5H1z M2 2h3v3H2z M0 26h7v7H0z M1 27h5v5H1z M2 28h3v3H2z M26 0h7v7h-7z M27 1h5v5h-5z M28 2h3v3h-3z M9 9h1v1H9z M11 9h1v1h-1z M13 9h1v1h-1z M15 9h1v1h-1z M17 9h1v1h-1z M19 9h1v1h-1z M21 9h1v1h-1z M9 11h1v1H9z M11 11h3v3h-3z M15 11h1v1h-1z M17 11h3v3h-3z M21 11h1v1h-1z M9 13h1v1H9z M15 13h1v1h-1z M21 13h1v1h-1z M9 15h1v1H9z M11 15h1v1h-1z M13 15h3v3h-3z M17 15h1v1h-1z M19 15h1v1h-1z M21 15h1v1h-1z M9 17h3v3h-3z M13 17h1v1h-1z M17 17h1v1h-1z M19 17h3v3h-3z M9 19h1v1H9z M11 19h1v1h-1z M15 19h3v3h-3z M19 19h1v1h-1z M9 21h1v1H9z M11 21h3v3h-3z M15 21h1v1h-1z M17 21h3v3h-3z M21 21h1v1h-1z"/>
     </svg>
+);
+
+
+export const BringForwardIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M15 3a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h10zm-3.707 5.293a1 1 0 00-1.414-1.414L8 8.586 6.121 6.707a1 1 0 00-1.414 1.414l2.586 2.586a1 1 0 001.414 0l3-3z" />
+  </svg>
+);
+
+
+export const SendBackwardIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <path d="M3 5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2H3zm13.707-1.293a1 1 0 00-1.414-1.414L12 5.586 10.121 3.707a1 1 0 00-1.414 1.414l2.586 2.586a1 1 0 001.414 0l3-3z" />
+  </svg>
+);
+
+export const BinIcon: React.FC<IconProps> = ({ className }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+  </svg>
 );

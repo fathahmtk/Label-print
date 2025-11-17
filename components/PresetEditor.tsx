@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { PresetProduct } from '../types';
 import { translateText, suggestTaglines, analyzeIngredients } from '../services/geminiService';
 import { TranslateIcon, SparklesIcon } from './icons';
@@ -42,6 +42,7 @@ type LoadingState = {
 const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, addToast }) => {
     const [formData, setFormData] = useState<Omit<PresetProduct, 'id' | 'lastModified'>>(emptyData);
     const [loading, setLoading] = useState<LoadingState>({});
+    const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (preset) {
@@ -54,6 +55,38 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, ad
              setFormData(emptyData);
         }
     }, [preset]);
+
+    // Handle Escape key and focus trapping
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                onClose();
+            } else if (event.key === 'Tab' && modalRef.current) {
+                const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+                    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                );
+                const firstElement = focusableElements[0];
+                const lastElement = focusableElements[focusableElements.length - 1];
+
+                if (event.shiftKey) { // Shift + Tab
+                    if (document.activeElement === firstElement) {
+                        lastElement.focus();
+                        event.preventDefault();
+                    }
+                } else { // Tab
+                    if (document.activeElement === lastElement) {
+                        firstElement.focus();
+                        event.preventDefault();
+                    }
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
@@ -148,19 +181,14 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, ad
             }));
             
             // Also translate the new ingredients and allergens to Arabic
-            const [translatedIngredients, translatedAllergens] = await Promise.all([
-                translateText(formattedIngredients),
-                translateText(detectedAllergens)
-            ]);
-            
-            setFormData(prev => ({
-                ...prev,
-                data: {
-                    ...prev.data,
-                    ingredients_ar: translatedIngredients,
-                    allergens_ar: translatedAllergens,
-                }
-            }));
+            if(formattedIngredients) {
+                const translatedIngredients = await translateText(formattedIngredients);
+                setFormData(prev => ({...prev, data: { ...prev.data, ingredients_ar: translatedIngredients }}));
+            }
+            if(detectedAllergens){
+                 const translatedAllergens = await translateText(detectedAllergens);
+                 setFormData(prev => ({...prev, data: { ...prev.data, allergens_ar: translatedAllergens }}));
+            }
 
         } catch(error) {
             addToast('AI analysis failed. Please try again.', 'error');
@@ -182,19 +210,19 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose, ad
     );
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 modal-backdrop" role="dialog" aria-modal="true">
+            <div ref={modalRef} className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto modal-panel">
                 <form onSubmit={handleSubmit} className="p-6">
                     <div className="flex justify-between items-center pb-4 border-b">
                         <h2 className="text-xl font-bold text-stone-700">{preset ? 'Edit Product' : 'Add New Product'}</h2>
-                        <button type="button" onClick={onClose} className="text-stone-400 hover:text-stone-600 text-3xl leading-none">&times;</button>
+                        <button type="button" onClick={onClose} className="text-stone-400 hover:text-stone-600 text-3xl leading-none" aria-label="Close">&times;</button>
                     </div>
 
                     <div className="space-y-6 mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label htmlFor="name" className="block text-sm font-medium text-stone-600">Preset Name (Internal)</label>
-                                <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                                <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" autoFocus />
                             </div>
                             <div>
                                 <label htmlFor="shelfLifeDays" className="block text-sm font-medium text-stone-600">Shelf Life (Days)</label>

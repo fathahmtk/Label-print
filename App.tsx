@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { PresetProduct, LabelTemplate, ToastMessage } from './types';
 import PrintPage from './pages/PrintPage';
 import ConfigPage from './pages/ConfigPage';
@@ -6,7 +6,9 @@ import TemplatesPage from './pages/TemplatesPage';
 import TemplateDesignerPage from './pages/TemplateDesignerPage';
 import DashboardPage from './pages/DashboardPage';
 import ToastContainer from './components/Toast';
+import ConfirmationModal from './components/ConfirmationModal';
 import { initialPresets, initialTemplates } from './data/presets';
+import { LogoIcon } from './components/icons';
 
 type Page = 'dashboard' | 'print' | 'config' | 'templates' | 'designer';
 
@@ -14,6 +16,7 @@ const App: React.FC = () => {
   const [page, setPage] = useState<Page>('dashboard');
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [confirmation, setConfirmation] = useState<{ title: string; message: string; onConfirm: () => void; } | null>(null);
 
   // --- Toast Management ---
   const addToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -38,6 +41,10 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('hotbake-presets', JSON.stringify(presets));
   }, [presets]);
+  
+  const sortedPresets = useMemo(() => 
+    [...presets].sort((a, b) => new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime()),
+  [presets]);
 
   const handleAddPreset = (newPresetData: Omit<PresetProduct, 'id'>) => {
     const newPreset: PresetProduct = { ...newPresetData, id: crypto.randomUUID(), lastModified: new Date().toISOString() };
@@ -55,10 +62,15 @@ const App: React.FC = () => {
   };
 
   const handleDeletePreset = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this product preset?')) {
-      setPresets(prev => prev.filter(p => p.id !== id));
-      addToast('Product preset deleted.');
-    }
+    setConfirmation({
+        title: 'Delete Product Preset',
+        message: 'Are you sure you want to delete this product? This action cannot be undone.',
+        onConfirm: () => {
+            setPresets(prev => prev.filter(p => p.id !== id));
+            addToast('Product preset deleted.');
+            setConfirmation(null);
+        }
+    });
   };
 
   // --- Templates State ---
@@ -76,6 +88,10 @@ const App: React.FC = () => {
     localStorage.setItem('hotbake-templates', JSON.stringify(templates));
   }, [templates]);
 
+  const sortedTemplates = useMemo(() =>
+    [...templates].sort((a, b) => new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime()),
+  [templates]);
+
   const handleSaveTemplate = (template: LabelTemplate) => {
     const templateWithTimestamp = { ...template, lastModified: new Date().toISOString() };
     setTemplates(prev => {
@@ -92,10 +108,15 @@ const App: React.FC = () => {
   };
   
   const handleDeleteTemplate = (id: string) => {
-     if (window.confirm('Are you sure you want to delete this template? This cannot be undone.')) {
-        setTemplates(prev => prev.filter(t => t.id !== id));
-        addToast('Template deleted.');
-    }
+     setConfirmation({
+        title: 'Delete Template',
+        message: 'Are you sure you want to delete this template? This is a critical design asset and cannot be recovered.',
+        onConfirm: () => {
+            setTemplates(prev => prev.filter(t => t.id !== id));
+            addToast('Template deleted.');
+            setConfirmation(null);
+        }
+    });
   };
 
   // --- Navigation ---
@@ -106,8 +127,8 @@ const App: React.FC = () => {
 
   const renderPage = () => {
     const commonProps = {
-        presets: presets.sort((a, b) => new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime()),
-        templates: templates.sort((a, b) => new Date(b.lastModified || 0).getTime() - new Date(a.lastModified || 0).getTime()),
+        presets: sortedPresets,
+        templates: sortedTemplates,
     };
 
     switch (page) {
@@ -128,14 +149,15 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-800">
-      <header className="bg-white shadow-sm sticky top-0 z-40 no-print">
+    <div className="min-h-screen text-stone-800">
+      <header className="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-40 no-print border-b border-stone-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-20">
-                <div className="flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <LogoIcon className="h-10 w-10 text-stone-700" />
                     <h1 className="font-dancing-script text-4xl text-stone-800 cursor-pointer" onClick={() => setPage('dashboard')}>Hot Bake</h1>
                 </div>
-                <nav className="flex items-center bg-stone-100 rounded-lg p-1 space-x-1">
+                <nav className="hidden sm:flex items-center bg-stone-100 rounded-lg p-1 space-x-1">
                   { (['dashboard', 'print', 'config', 'templates'] as Page[]).map(p => (
                       <button
                         key={p}
@@ -155,7 +177,16 @@ const App: React.FC = () => {
       <main className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {renderPage()}
       </main>
+
       <ToastContainer toasts={toasts} />
+      
+      <ConfirmationModal
+        isOpen={!!confirmation}
+        onClose={() => setConfirmation(null)}
+        onConfirm={confirmation?.onConfirm}
+        title={confirmation?.title || ''}
+        message={confirmation?.message || ''}
+      />
     </div>
   );
 };

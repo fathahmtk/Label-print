@@ -41,6 +41,7 @@ export interface LayoutElement {
   y: number; // percentage
   width: number; // percentage
   height: number; // percentage
+  zIndex?: number;
   
   // Text-specific properties
   dataBinding?: DataBindingKey;
