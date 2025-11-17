@@ -1,15 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import type { LabelData, PresetProduct } from '../types';
+import type { LabelData, PresetProduct, LabelTemplate } from '../types';
 import LabelForm from '../components/LabelForm';
 import LabelPreview from '../components/LabelPreview';
 import { initialLabelData, calculateExpiryDate } from '../data/presets';
 
 interface PrintPageProps {
   presets: PresetProduct[];
+  templates: LabelTemplate[];
 }
 
-const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
+const PrintPage: React.FC<PrintPageProps> = ({ presets, templates }) => {
   const [labelData, setLabelData] = useState<LabelData>(() => {
     const firstPreset = presets[0];
     if (firstPreset) {
@@ -24,6 +24,8 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
 
   const [selectedPresetShelfLife, setSelectedPresetShelfLife] = useState<number | null>(() => presets[0]?.shelfLifeDays ?? null);
   const [selectedPresetName, setSelectedPresetName] = useState<string>(() => presets[0]?.name ?? '');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(() => templates[0]?.id ?? '');
+
   const [labelCount, setLabelCount] = useState<number>(4);
   const [printDensity, setPrintDensity] = useState<string>('normal');
 
@@ -89,6 +91,8 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
       setSelectedPresetName(selectedPreset.name);
     }
   };
+  
+  const selectedTemplate = templates.find(t => t.id === selectedTemplateId) || null;
 
   const handlePrint = () => {
     window.print();
@@ -105,6 +109,9 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
           presets={presets}
           onPresetChange={handlePresetChange}
           selectedPresetName={selectedPresetName}
+          templates={templates}
+          selectedTemplateId={selectedTemplateId}
+          onTemplateChange={setSelectedTemplateId}
           onPrint={handlePrint}
           labelCount={labelCount}
           onLabelCountChange={setLabelCount}
@@ -117,6 +124,7 @@ const PrintPage: React.FC<PrintPageProps> = ({ presets }) => {
         <div className="flex-grow flex items-center justify-center lg:justify-start bg-white p-4 rounded-lg shadow-lg print-container">
           <LabelPreview 
             data={labelData}
+            template={selectedTemplate}
             labelCount={labelCount}
             printDensity={printDensity}
           />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import type { PresetProduct } from '../types';
 
@@ -13,14 +12,22 @@ const emptyData = {
     shelfLifeDays: 7,
     data: {
       productName: '',
+      productName_ar: '',
+      tagline: '',
+      tagline_ar: '',
       size: '',
       ingredients: '',
+      ingredients_ar: '',
       allergens: '',
+      allergens_ar: '',
+      mfgAndDist: '',
+      mfgAndDist_ar: '',
+      disclaimer: '',
+      disclaimer_ar: '',
       quantityValue: '1',
       quantityUnit: 'Pieces',
       unitWeightValue: '1',
       unitWeightUnit: 'g',
-      tagline: '',
     }
 }
 
@@ -70,17 +77,17 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose }) 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
                 <form onSubmit={handleSubmit} className="p-6">
                     <div className="flex justify-between items-center pb-4 border-b">
                         <h2 className="text-xl font-bold text-stone-700">{preset ? 'Edit Product' : 'Add New Product'}</h2>
-                        <button type="button" onClick={onClose} className="text-stone-400 hover:text-stone-600">&times;</button>
+                        <button type="button" onClick={onClose} className="text-stone-400 hover:text-stone-600 text-3xl leading-none">&times;</button>
                     </div>
 
                     <div className="space-y-6 mt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-stone-600">Preset Name</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-stone-600">Preset Name (Internal)</label>
                                 <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
                             </div>
                             <div>
@@ -88,25 +95,49 @@ const PresetEditor: React.FC<PresetEditorProps> = ({ preset, onSave, onClose }) 
                                 <input type="number" id="shelfLifeDays" name="shelfLifeDays" value={formData.shelfLifeDays} onChange={handleChange} required min="0" className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
                             </div>
                         </div>
-                        <div>
-                            <label htmlFor="productName" className="block text-sm font-medium text-stone-600">Product Name (on label)</label>
-                            <input type="text" id="productName" name="productName" value={formData.data.productName} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label htmlFor="productName" className="block text-sm font-medium text-stone-600">Product Name (EN)</label>
+                                <input type="text" id="productName" name="productName" value={formData.data.productName} onChange={handleChange} required className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                            </div>
+                            <div>
+                                <label htmlFor="productName_ar" className="block text-sm font-medium text-stone-600">Product Name (AR)</label>
+                                <input type="text" id="productName_ar" name="productName_ar" value={formData.data.productName_ar} onChange={handleChange} dir="rtl" className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm font-arabic" />
+                            </div>
                         </div>
-                         <div>
-                            <label htmlFor="size" className="block text-sm font-medium text-stone-600">Size</label>
-                            <input type="text" id="size" name="size" value={formData.data.size} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" placeholder="e.g., Large, 6-Pack, 8oz Jar" />
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label htmlFor="tagline" className="block text-sm font-medium text-stone-600">Tagline (EN)</label>
+                                <input type="text" id="tagline" name="tagline" value={formData.data.tagline} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                            </div>
+                             <div>
+                                <label htmlFor="tagline_ar" className="block text-sm font-medium text-stone-600">Tagline (AR)</label>
+                                <input type="text" id="tagline_ar" name="tagline_ar" value={formData.data.tagline_ar} onChange={handleChange} dir="rtl" className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm font-arabic" />
+                            </div>
                         </div>
+                        
                         <div>
-                            <label htmlFor="tagline" className="block text-sm font-medium text-stone-600">Tagline</label>
-                            <input type="text" id="tagline" name="tagline" value={formData.data.tagline} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                          <label htmlFor="size" className="block text-sm font-medium text-stone-600">Size</label>
+                          <input type="text" id="size" name="size" value={formData.data.size} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" placeholder="e.g., Large, 6-Pack, 8oz Jar" />
                         </div>
+
                         <div>
-                            <label htmlFor="ingredients" className="block text-sm font-medium text-stone-600">Ingredients</label>
+                            <label htmlFor="ingredients" className="block text-sm font-medium text-stone-600">Ingredients (EN)</label>
                             <textarea id="ingredients" name="ingredients" rows={3} value={formData.data.ingredients} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
                         </div>
+                        <div>
+                            <label htmlFor="ingredients_ar" className="block text-sm font-medium text-stone-600">Ingredients (AR)</label>
+                            <textarea id="ingredients_ar" name="ingredients_ar" rows={3} value={formData.data.ingredients_ar} onChange={handleChange} dir="rtl" className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm font-arabic" />
+                        </div>
                          <div>
-                            <label htmlFor="allergens" className="block text-sm font-medium text-stone-600">Allergen Information</label>
+                            <label htmlFor="allergens" className="block text-sm font-medium text-stone-600">Allergen Info (EN)</label>
                             <input type="text" id="allergens" name="allergens" value={formData.data.allergens} onChange={handleChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm" />
+                        </div>
+                         <div>
+                            <label htmlFor="allergens_ar" className="block text-sm font-medium text-stone-600">Allergen Info (AR)</label>
+                            <input type="text" id="allergens_ar" name="allergens_ar" value={formData.data.allergens_ar} onChange={handleChange} dir="rtl" className="mt-1 block w-full rounded-md border-stone-300 shadow-sm sm:text-sm font-arabic" />
                         </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>

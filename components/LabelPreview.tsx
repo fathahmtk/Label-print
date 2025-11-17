@@ -1,127 +1,87 @@
-
 import React from 'react';
-import type { LabelData } from '../types';
+import type { LabelData, LabelTemplate, LayoutElement, DataBindingKey } from '../types';
 
 interface LabelPreviewProps {
   data: LabelData;
+  template: LabelTemplate | null;
   labelCount: number;
   printDensity: string;
 }
 
-// Helper component for the label's visual content to avoid duplication.
-const LabelContent: React.FC<{ data: LabelData }> = ({ data }) => {
-  const getProductNameFontSize = (name: string = ''): string => {
-    const length = name.length;
-    if (length > 40) return 'text-xl';
-    if (length > 30) return 'text-2xl';
-    if (length > 20) return 'text-3xl';
-    return 'text-4xl';
-  };
+const getBoundValue = (data: LabelData, binding: DataBindingKey): string => {
+  return data[binding] || '';
+};
 
-  const getTaglineFontSize = (tagline: string = ''): string => {
-    const length = tagline.length;
-    if (length > 30) return 'text-[10px]';
-    return 'text-xs';
-  };
+const LabelContent: React.FC<{ data: LabelData; template: LabelTemplate }> = ({ data, template }) => {
+  const renderElement = (element: LayoutElement) => {
+    const style: React.CSSProperties = {
+      position: 'absolute',
+      left: `${element.x}%`,
+      top: `${element.y}%`,
+      width: `${element.width}%`,
+      height: `${element.height}%`,
+      color: element.color,
+      fontFamily: element.fontFamily,
+      fontSize: `${element.fontSize}px`, // Will be scaled by parent
+      fontWeight: element.fontWeight,
+      textAlign: element.textAlign,
+      letterSpacing: element.tracking,
+      textTransform: element.isUppercase ? 'uppercase' : 'none',
+      direction: element.dataBinding?.endsWith('_ar') ? 'rtl' : 'ltr',
+    };
 
-  const getIngredientsFontSize = (ingredients: string = ''): string => {
-    const length = ingredients.length;
-    if (length > 400) return 'text-[9px] leading-snug';
-    if (length > 250) return 'text-[10px] leading-normal';
-    if (length > 150) return 'text-[11px] leading-normal';
-    return 'text-xs leading-relaxed';
-  };
-
-  const getMfgFontSize = (mfg: string = ''): string => {
-    const length = mfg.length;
-    if (length > 120) return 'text-[9px]';
-    if (length > 80) return 'text-[10px]';
-    if (length > 50) return 'text-[11px]';
-    return 'text-xs';
-  };
-
-  const getDisclaimerFontSize = (disclaimer: string = ''): string => {
-    const length = disclaimer.length;
-    if (length > 200) return 'text-[8px]';
-    if (length > 120) return 'text-[9px]';
-    return 'text-[10px]';
+    switch (element.type) {
+      case 'logo':
+        return (
+          <div key={element.id} style={style} className="flex items-center justify-center">
+            {data.logo ? (
+              <img src={data.logo} alt="Brand Logo" className="max-w-full max-h-full object-contain" />
+            ) : (
+               <div className="w-full h-full bg-stone-100 flex items-center justify-center text-stone-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-1/2 w-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+               </div>
+            )}
+          </div>
+        );
+      case 'line':
+         return (
+          <div key={element.id} style={style} className="flex items-center justify-center">
+             <div style={{ width: '100%', height: `${element.strokeWidth}px`, backgroundColor: element.strokeColor }} />
+          </div>
+         )
+      case 'text':
+      default:
+        const content = element.dataBinding ? getBoundValue(data, element.dataBinding) : (element.content || '');
+        return (
+          <div key={element.id} style={style} className={`flex items-center break-words whitespace-pre-wrap ${element.fontFamily === 'Noto Kufi Arabic' ? 'font-arabic' : ''}`}>
+            <p className="w-full">{content}</p>
+          </div>
+        );
+    }
   };
 
   return (
-    <>
-      <main className="flex-grow flex flex-row">
-        {/* Left Branding Column */}
-        <div className="w-2/5 bg-stone-50/50 p-8 flex flex-col justify-between items-center text-center border-r border-stone-200">
-          {data.logo ? (
-            <img src={data.logo} alt="Brand Logo" className="max-h-24 w-auto object-contain" />
-          ) : (
-            <p className="font-dancing-script text-4xl">{data.brandName}</p>
-          )}
-          <h1 className={`font-black tracking-tight leading-snug uppercase ${getProductNameFontSize(data.productName)}`}>{data.productName}</h1>
-          <p className={`tracking-[0.3em] font-semibold text-stone-600 ${getTaglineFontSize(data.tagline)}`}>{data.tagline}</p>
-          {data.size && (
-            <div className="border-t border-b border-stone-300 py-1 px-4">
-              <p className="text-sm font-bold tracking-widest text-stone-700 uppercase">{data.size}</p>
-            </div>
-          )}
-        </div>
-
-        {/* Right Info Column */}
-        <div className="w-3/5 p-8 flex flex-col text-sm space-y-4">
-          {/* Ingredients Section */}
-          <div>
-            <h2 className="tracking-widest text-xs font-bold text-stone-800 uppercase">Ingredients</h2>
-            <p className={`mt-2 text-stone-700 ${getIngredientsFontSize(data.ingredients)}`}>{data.ingredients}</p>
-            {data.allergens && <p className="text-xs font-bold mt-2 text-stone-800">{data.allergens}</p>}
-          </div>
-
-          {/* Mfg Section */}
-          <div>
-            <h2 className="tracking-widest text-xs font-bold text-stone-800 uppercase">Mfg. & Dist. By</h2>
-            <p className={`whitespace-pre-wrap text-stone-600 mt-1 ${getMfgFontSize(data.mfgAndDist)}`}>{data.mfgAndDist}</p>
-          </div>
-
-          {/* Spacer */}
-          <div className="flex-grow"></div>
-          
-          {/* Data Section */}
-          <div className="grid grid-cols-2 gap-4 items-end pt-4 border-t border-stone-200">
-            {/* Left details column */}
-            <div className="space-y-3">
-              <div className="text-left">
-                <p className="text-xs font-bold uppercase">Net Wt.</p>
-                <p className="text-sm text-stone-600">{data.netWeight}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-2 text-left">
-                <div>
-                  <p className="text-xs font-bold uppercase">Prod. Date</p>
-                  <p className="text-sm text-stone-600">{data.productionDate}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold uppercase">Exp. Date</p>
-                  <p className="text-sm text-stone-600">{data.expiryDate}</p>
-                </div>
-              </div>
-            </div>
-            {/* Right quantity circle */}
-            <div className="flex justify-center items-center">
-              <div className="w-24 h-24 rounded-full bg-stone-100 flex flex-col items-center justify-center p-1 border border-stone-200">
-                <p className="text-4xl font-bold leading-tight">{data.quantityValue}</p>
-                {data.quantityUnit && <p className="text-sm tracking-wider uppercase text-center text-stone-600">{data.quantityUnit}</p>}
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      <footer className="bg-stone-200 p-2">
-        <p className={`text-center font-semibold tracking-wider text-stone-700 ${getDisclaimerFontSize(data.disclaimer)}`}>{data.disclaimer}</p>
-      </footer>
-    </>
+    <div 
+        className="w-full h-full bg-white text-black relative"
+        style={{
+            aspectRatio: `${template.widthMm} / ${template.heightMm}`,
+        }}
+    >
+      {template.elements.map(renderElement)}
+    </div>
   );
 };
 
-const LabelPreview: React.FC<LabelPreviewProps> = ({ data, labelCount, printDensity }) => {
+
+const LabelPreview: React.FC<LabelPreviewProps> = ({ data, template, labelCount, printDensity }) => {
+  if (!template) {
+    return (
+        <div className="no-print w-full max-w-2xl aspect-[16/9] bg-stone-100 text-stone-500 shadow-lg border border-stone-200 flex flex-col items-center justify-center font-['Montserrat'] rounded-lg overflow-hidden">
+            <p>Please select a template to see a preview.</p>
+        </div>
+    );
+  }
+
   const getPrintLayoutClasses = (count: number): string => {
     if (count === 12) return 'labels-12';
     if (count === 6) return 'labels-6';
@@ -133,16 +93,18 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data, labelCount, printDens
   return (
     <>
       {/* Live Preview for Screen */}
-      <div id="label-preview" className="no-print w-full max-w-2xl aspect-[16/9] bg-white text-black shadow-2xl border border-stone-200 flex flex-col font-['Montserrat'] rounded-lg overflow-hidden">
-        <LabelContent data={data} />
+      <div id="label-preview" className="no-print w-full max-w-2xl bg-white shadow-2xl border border-stone-200 flex flex-col rounded-lg overflow-hidden" style={{ aspectRatio: `${template.widthMm} / ${template.heightMm}`}}>
+        <div className="w-full h-full" style={{ fontSize: '1.2vw' }}> {/* Scale font based on preview width */}
+            <LabelContent data={data} template={template} />
+        </div>
       </div>
 
       {/* Print Area for A4 Sheet - hidden on screen, visible on print */}
       <div id="print-area" className={printClasses}>
         <div className="print-grid-container">
           {[...Array(labelCount)].map((_, i) => (
-            <div key={i} className="label-copy bg-white text-black flex flex-col font-['Montserrat'] overflow-hidden">
-              <LabelContent data={data} />
+            <div key={i} className="label-copy bg-white text-black relative overflow-hidden">
+              <LabelContent data={data} template={template} />
             </div>
           ))}
         </div>

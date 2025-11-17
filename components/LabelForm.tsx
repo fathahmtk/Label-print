@@ -1,16 +1,18 @@
-
 import React from 'react';
-import type { LabelData, PresetProduct } from '../types';
+import type { LabelData, PresetProduct, LabelTemplate } from '../types';
 
 interface LabelFormProps {
   data: LabelData;
   presets: PresetProduct[];
+  templates: LabelTemplate[];
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemoveLogo: () => void;
   onPresetChange: (name: string) => void;
+  onTemplateChange: (id: string) => void;
   onPrint: () => void;
   selectedPresetName: string;
+  selectedTemplateId: string;
   labelCount: number;
   onLabelCountChange: (count: number) => void;
   printDensity: string;
@@ -18,29 +20,47 @@ interface LabelFormProps {
 }
 
 const LabelForm: React.FC<LabelFormProps> = ({ 
-  data, presets, onChange, onLogoChange, onRemoveLogo, onPresetChange, 
-  onPrint, selectedPresetName, labelCount, onLabelCountChange, printDensity, onPrintDensityChange 
+  data, presets, templates, onChange, onLogoChange, onRemoveLogo, 
+  onPresetChange, onTemplateChange, onPrint, selectedPresetName, selectedTemplateId,
+  labelCount, onLabelCountChange, printDensity, onPrintDensityChange 
 }) => {
 
   return (
     <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
       <fieldset>
-        <legend className="text-lg font-semibold text-stone-800 mb-4 pb-2 w-full">1. Select a Product</legend>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {presets.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              onClick={() => onPresetChange(p.name)}
-              className={`text-center p-3 rounded-md border text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500 ${
-                selectedPresetName === p.name
-                  ? 'bg-stone-700 text-white border-stone-700 shadow-sm'
-                  : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-50'
-              }`}
+        <legend className="text-lg font-semibold text-stone-800 mb-4 pb-2 w-full">1. Select Product & Template</legend>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-stone-600 mb-2">Product</label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {presets.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => onPresetChange(p.name)}
+                  className={`text-center p-3 rounded-md border text-sm font-medium transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-stone-500 ${
+                    selectedPresetName === p.name
+                      ? 'bg-stone-700 text-white border-stone-700 shadow-sm'
+                      : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-50'
+                  }`}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label htmlFor="template" className="block text-sm font-medium text-stone-600">Template</label>
+             <select
+              id="template"
+              name="template"
+              value={selectedTemplateId}
+              onChange={(e) => onTemplateChange(e.target.value)}
+              className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm"
             >
-              {p.name}
-            </button>
-          ))}
+              {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
         </div>
       </fieldset>
 
@@ -85,17 +105,7 @@ const LabelForm: React.FC<LabelFormProps> = ({
               </div>
             </div>
           </div>
-
-          <div>
-            <label htmlFor="size" className="block text-sm font-medium text-stone-600">Size</label>
-            <input type="text" id="size" name="size" value={data.size} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" placeholder="e.g., Large, 6-Pack, 8oz Jar" />
-          </div>
-
-          <div>
-            <label htmlFor="mfgAndDist" className="block text-sm font-medium text-stone-600">Mfg & Dist. By</label>
-            <textarea id="mfgAndDist" name="mfgAndDist" rows={3} value={data.mfgAndDist} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
-          </div>
-
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="productionDate" className="block text-sm font-medium text-stone-600">Production Date</label>
@@ -109,18 +119,13 @@ const LabelForm: React.FC<LabelFormProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-300 bg-stone-800 text-white text-xs rounded py-1 px-2 z-10">
-                    This date is automatically calculated from the Production Date plus the preset's shelf life. The calculation correctly handles month lengths and leap years. Feel free to edit this date manually.
+                    Auto-calculated from production date + shelf life. Can be manually overridden.
                   </div>
                 </div>
               </div>
               <input type="date" id="expiryDate" name="expiryDate" value={data.expiryDate} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
             </div>
           </div>
-          
-          <div>
-              <label htmlFor="disclaimer" className="block text-sm font-medium text-stone-600">Disclaimer</label>
-              <textarea id="disclaimer" name="disclaimer" rows={2} value={data.disclaimer} onChange={onChange} className="mt-1 block w-full rounded-md border-stone-300 shadow-sm focus:border-stone-500 focus:ring-stone-500 sm:text-sm" />
-            </div>
         </div>
       </fieldset>
 
