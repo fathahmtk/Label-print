@@ -1,4 +1,3 @@
-
 import React from 'react';
 import type { LabelData } from '../types';
 
@@ -7,6 +6,28 @@ interface LabelPreviewProps {
 }
 
 const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
+
+  const getProductNameFontSize = (name: string = ''): string => {
+    const length = name.length;
+    if (length > 40) return 'text-xl'; // For very long names
+    if (length > 30) return 'text-2xl';
+    if (length > 20) return 'text-3xl';
+    return 'text-4xl'; // For short, punchy names
+  };
+
+  const getTaglineFontSize = (tagline: string = ''): string => {
+    const length = tagline.length;
+    if (length > 30) return 'text-[10px]';
+    return 'text-xs';
+  };
+
+  const getIngredientsFontSize = (ingredients: string = ''): string => {
+    const length = ingredients.length;
+    if (length > 400) return 'text-[9px] leading-snug';    // Very long list
+    if (length > 250) return 'text-[10px] leading-normal'; // Long list
+    if (length > 150) return 'text-[11px] leading-normal'; // Medium list
+    return 'text-xs leading-relaxed';                     // Short list
+  };
 
   return (
     <div id="label-preview" className="w-full max-w-2xl aspect-[16/9] bg-white text-black shadow-2xl border border-stone-200 flex flex-col font-['Montserrat'] rounded-lg overflow-hidden">
@@ -19,8 +40,13 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
             ) : (
             <p className="font-dancing-script text-4xl">{data.brandName}</p>
             )}
-            <h1 className="text-3xl font-black tracking-tight leading-snug mt-3 uppercase">{data.productName}</h1>
-            <p className="text-xs tracking-[0.3em] font-semibold text-stone-600 mt-2">{data.tagline}</p>
+            <h1 className={`font-black tracking-tight leading-snug mt-3 uppercase ${getProductNameFontSize(data.productName)}`}>{data.productName}</h1>
+            <p className={`tracking-[0.3em] font-semibold text-stone-600 mt-2 ${getTaglineFontSize(data.tagline)}`}>{data.tagline}</p>
+            {data.size && (
+                <div className="mt-4 border-t border-b border-stone-300 py-1 px-4">
+                    <p className="text-sm font-bold tracking-widest text-stone-700 uppercase">{data.size}</p>
+                </div>
+            )}
         </div>
 
         {/* Right Info Column */}
@@ -28,7 +54,7 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
             {/* Ingredients Section */}
             <div>
                 <h2 className="tracking-widest text-xs font-bold text-stone-800 uppercase">Ingredients</h2>
-                <p className="text-xs leading-relaxed mt-2 text-stone-700">{data.ingredients}</p>
+                <p className={`mt-2 text-stone-700 ${getIngredientsFontSize(data.ingredients)}`}>{data.ingredients}</p>
                 {data.allergens && <p className="text-xs font-bold mt-2 text-stone-800">{data.allergens}</p>}
             </div>
 
@@ -45,15 +71,9 @@ const LabelPreview: React.FC<LabelPreviewProps> = ({ data }) => {
             <div className="grid grid-cols-2 gap-4 items-end pt-4 border-t border-stone-200">
                 {/* Left details column */}
                 <div className="space-y-3">
-                     <div className="grid grid-cols-2 gap-2 text-left">
-                        <div>
-                            <p className="text-xs font-bold uppercase">Size</p>
-                            <p className="text-sm text-stone-600">{data.size}</p>
-                        </div>
-                        <div>
-                            <p className="text-xs font-bold uppercase">Net Wt.</p>
-                            <p className="text-sm text-stone-600">{data.netWeight}</p>
-                        </div>
+                     <div className="text-left">
+                        <p className="text-xs font-bold uppercase">Net Wt.</p>
+                        <p className="text-sm text-stone-600">{data.netWeight}</p>
                     </div>
                      <div className="grid grid-cols-2 gap-2 text-left">
                         <div>
